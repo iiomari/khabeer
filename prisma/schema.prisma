@@ -1,0 +1,324 @@
+// Enum-like columns are stored as strings; the allowed values live in
+// src/lib/enums.ts and are enforced by Zod + TypeScript at every write site.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  /// EXPERT | CLIENT | ADMIN
+  role         String
+  /// ACTIVE | SUSPENDED
+  status       String   @default("ACTIVE")
+  phone        String?
+  city         String?
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  expertProfile       ExpertProfile?
+  clientProfile       ClientProfile?
+  clientBookings      Booking[]      @relation("ClientBookings")
+  expertBookings      Booking[]      @relation("ExpertBookings")
+  clientConversations Conversation[] @relation("ClientConversations")
+  expertConversations Conversation[] @relation("ExpertConversations")
+  messages            Message[]
+  reviewsWritten      Review[]       @relation("ClientReviews")
+  reviewsReceived     Review[]       @relation("ExpertReviews")
+  favorites           Favorite[]     @relation("ClientFavorites")
+  favoritedBy         Favorite[]     @relation("ExpertFavoritedBy")
+  notifications       Notification[]
+
+  @@index([role])
+  @@index([status])
+}
+
+model ExpertProfile {
+  id                   String  @id @default(cuid())
+  userId               String  @unique
+  user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  headline             String?
+  bio                  String?
+  previousTitle        String?
+  previousOrganization String?
+  yearsOfExperience    Int     @default(0)
+  city                 String?
+
+  /// DRAFT | PENDING | VERIFIED | REJECTED
+  verificationStatus     String    @default("DRAFT")
+  rejectionReason        String?
+  ratingAvg              Float     @default(0)
+  ratingCount            Int       @default(0)
+  completedConsultations Int       @default(0)
+  minPriceSar            Int?
+  onboardingStep         Int       @default(1)
+  publishedAt            DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  experiences    Experience[]
+  educations     Education[]
+  certifications Certification[]
+  skills         Skill[]
+  categories     ExpertCategory[]
+  services       ConsultingService[]
+  availability   AvailabilitySlot[]
+
+  @@index([verificationStatus])
+  @@index([ratingAvg])
+  @@index([yearsOfExperience])
+  @@index([minPriceSar])
+  @@index([city])
+}
+
+model ClientProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isCompany   Boolean  @default(false)
+  companyName String?
+  industry    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Experience {
+  id              String        @id @default(cuid())
+  expertProfileId String
+  expertProfile   ExpertProfile @relation(fields: [expertProfileId], references: [id], onDelete: Cascade)
+  organization    String
+  position        String
+  startYear       Int
+  endYear         Int?
+  isCurrent       Boolean       @default(false)
+  description     String?
+  sortOrder       Int           @default(0)
+
+  @@index([expertProfileId])
+}
+
+model Education {
+  id              String        @id @default(cuid())
+  expertProfileId String
+  expertProfile   ExpertProfile @relation(fields: [expertProfileId], references: [id], onDelete: Cascade)
+  institution     String
+  degree          String
+  field           String?
+  graduationYear  Int?
+  sortOrder       Int           @default(0)
+
+  @@index([expertProfileId])
+}
+
+model Certification {
+  id              String        @id @default(cuid())
+  expertProfileId String
+  expertProfile   ExpertProfile @relation(fields: [expertProfileId], references: [id], onDelete: Cascade)
+  name            String
+  issuer          String
+  issueYear       Int?
+  credentialUrl   String?
+  sortOrder       Int           @default(0)
+
+  @@index([expertProfileId])
+}
+
+model Skill {
+  id              String        @id @default(cuid())
+  expertProfileId String
+  expertProfile   ExpertProfile @relation(fields: [expertProfileId], references: [id], onDelete: Cascade)
+  name            String
+
+  @@index([expertProfileId])
+  @@index([name])
+}
+
+model Category {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  slug        String           @unique
+  icon        String?
+  description String?
+  sortOrder   Int              @default(0)
+  createdAt   DateTime         @default(now())
+  experts     ExpertCategory[]
+}
+
+model ExpertCategory {
+  expertProfileId String
+  categoryId      String
+  expertProfile   ExpertProfile @relation(fields: [expertProfileId], references: [id], onDelete: Cascade)
+  category        Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([expertProfileId, categoryId])
+  @@index([categoryId])
+}
+
+model ConsultingService {
+  id              String        @id @default(cuid())
+  expertProfileId String
+  expertProfile   ExpertProfile @relation(fields: [expertProfileId], references: [id], onDelete: Cascade)
+  name            String
+  description     String
+  durationMinutes Int
+  priceSar        Int
+  isActive        Boolean       @default(true)
+  sortOrder       Int           @default(0)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  bookings        Booking[]
+
+  @@index([expertProfileId])
+}
+
+model AvailabilitySlot {
+  id              String        @id @default(cuid())
+  expertProfileId String
+  expertProfile   ExpertProfile @relation(fields: [expertProfileId], references: [id], onDelete: Cascade)
+  dayOfWeek       Int
+  startMinute     Int
+  endMinute       Int
+
+  @@index([expertProfileId])
+}
+
+model Booking {
+  id              String            @id @default(cuid())
+  bookingRef      String            @unique
+  clientId        String
+  expertId        String
+  serviceId       String
+  client          User              @relation("ClientBookings", fields: [clientId], references: [id], onDelete: Cascade)
+  expert          User              @relation("ExpertBookings", fields: [expertId], references: [id], onDelete: Cascade)
+  service         ConsultingService @relation(fields: [serviceId], references: [id])
+  scheduledAt     DateTime
+  durationMinutes Int
+  priceSar        Int
+  description     String
+
+  /// PENDING | CONFIRMED | REJECTED | CANCELLED | COMPLETED
+  status       String    @default("PENDING")
+  statusReason String?
+  completedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  payment      Payment?
+  review       Review?
+  conversation Conversation?
+
+  @@index([clientId, status])
+  @@index([expertId, status])
+  @@index([scheduledAt])
+  @@index([serviceId])
+}
+
+model Payment {
+  id        String  @id @default(cuid())
+  bookingId String  @unique
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  amountSar Int
+
+  /// MADA | APPLE_PAY | CARD
+  method String
+  /// PAID | REFUNDED | FAILED
+  status String @default("PAID")
+
+  transactionRef String   @unique
+  provider       String   @default("mock")
+  cardLast4      String?
+  createdAt      DateTime @default(now())
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Conversation {
+  id            String    @id @default(cuid())
+  bookingId     String    @unique
+  booking       Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  clientId      String
+  expertId      String
+  client        User      @relation("ClientConversations", fields: [clientId], references: [id], onDelete: Cascade)
+  expert        User      @relation("ExpertConversations", fields: [expertId], references: [id], onDelete: Cascade)
+  lastMessageAt DateTime?
+  createdAt     DateTime  @default(now())
+  messages      Message[]
+
+  @@index([clientId, lastMessageAt])
+  @@index([expertId, lastMessageAt])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  body           String
+  readAt         DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  bookingId String   @unique
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  clientId  String
+  expertId  String
+  client    User     @relation("ClientReviews", fields: [clientId], references: [id], onDelete: Cascade)
+  expert    User     @relation("ExpertReviews", fields: [expertId], references: [id], onDelete: Cascade)
+  rating    Int
+  comment   String
+  isHidden  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([expertId, createdAt])
+  @@index([clientId])
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  clientId  String
+  expertId  String
+  client    User     @relation("ClientFavorites", fields: [clientId], references: [id], onDelete: Cascade)
+  expert    User     @relation("ExpertFavoritedBy", fields: [expertId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([clientId, expertId])
+  @@index([expertId])
+}
+
+model Notification {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// BOOKING_REQUESTED | BOOKING_ACCEPTED | BOOKING_REJECTED | BOOKING_CANCELLED |
+  /// APPOINTMENT_REMINDER | NEW_MESSAGE | NEW_REVIEW | PAYMENT_SUCCESS |
+  /// PROFILE_VERIFIED | PROFILE_REJECTED
+  type String
+
+  title     String
+  body      String
+  linkUrl   String?
+  relatedId String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@index([type, relatedId])
+}
