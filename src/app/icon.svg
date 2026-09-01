@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#26374f"/>
+      <stop offset="100%" stop-color="#16233a"/>
+    </linearGradient>
+  </defs>
+  <rect width="40" height="40" rx="11" fill="url(#g)"/>
+  <rect x="3.2" y="3.2" width="33.6" height="33.6" rx="8.6" fill="none" stroke="#c79a63" stroke-width="1.5" opacity="0.9"/>
+  <text x="20" y="20" text-anchor="middle" dominant-baseline="central" fill="#ffffff"
+        font-size="21" font-weight="600"
+        font-family="'IBM Plex Sans Arabic','Segoe UI',Tahoma,'Noto Sans Arabic',sans-serif">خ</text>
+</svg>
