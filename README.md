@@ -4,21 +4,35 @@
 
 منصة سعودية تربط المتقاعدين وأصحاب الخبرات الطويلة بالشركات والجهات والأفراد الذين يحتاجون استشارات مهنية.
 
+**🌐 النسخة المنشورة: https://khabeer-inky.vercel.app**
+
 هذا نموذج أولي (MVP) كامل الوظائف: تسجيل دخول حقيقي، قاعدة بيانات، أدوار، بحث وفلترة، حجز مواعيد، دفع تجريبي، رسائل، إشعارات، تقييمات، ولوحات تحكم للعميل والخبير والمشرف.
 
 ---
 
-## التشغيل
+## التشغيل محليًا
 
 ```bash
 cd khabeer
 npm install
+cp .env.example .env   # ثم ضع فيه DATABASE_URL و AUTH_SECRET
 npm run db:migrate     # أول مرة فقط
 npm run db:seed        # بيانات تجريبية
 npm run dev            # http://localhost:3000
 ```
 
-لا يحتاج المشروع أي خادم قواعد بيانات: قاعدة البيانات ملف SQLite داخل المشروع (`prisma/khabeer.db`).
+قاعدة البيانات PostgreSQL مستضافة على [Neon](https://neon.com) (مشروع `hidden-dew-57624853`، فرع `production`)، ويمكن سحب متغيرات الاتصال بأمر `neon link`.
+
+## النشر
+
+المشروع منشور على Vercel (`khabeer-inky.vercel.app`). لإصدار نسخة جديدة:
+
+```bash
+vercel --prod
+```
+
+متغيرات البيئة المضبوطة في Vercel: `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `AUTH_SECRET`, `AUTH_TRUST_HOST`.
+أمر البناء `vercel-build` يشغّل `prisma generate` ثم `prisma migrate deploy` ثم `next build`.
 
 ### الحسابات التجريبية
 
