@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RegisterForm } from "@/components/auth/register-form";
+import { NafathButton } from "@/components/auth/nafath-button";
 import { t } from "@/lib/i18n/ar";
 
 export const metadata: Metadata = {
@@ -21,6 +22,7 @@ export default async function RegisterPage({ searchParams }: PageProps<"/auth/re
           <CardDescription className="text-base">{t.auth.registerSubtitle}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          <NafathButton />
           <RegisterForm initialRole={roleParam} />
           <p className="text-center text-sm text-muted-foreground">
             {t.auth.hasAccount}{" "}

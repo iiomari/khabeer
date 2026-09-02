@@ -62,24 +62,25 @@ export default async function OpengraphImage() {
           padding: 80,
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: 132,
-            height: 132,
-            flexShrink: 0,
-            borderRadius: 38,
-            background: "#ffffff",
-            color: "#1d2b45",
-            fontSize: 72,
-            fontWeight: 700,
-            lineHeight: 1,
-            paddingBottom: 10,
-          }}
-        >
-          خ
+        {/* brand mark: a wide ring meeting a smaller one */}
+        <div style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+          <div
+            style={{
+              width: 116,
+              height: 116,
+              borderRadius: 58,
+              border: "11px solid #ffffff",
+            }}
+          />
+          <div
+            style={{
+              width: 86,
+              height: 86,
+              borderRadius: 43,
+              border: "11px solid #c79a63",
+              marginLeft: -44,
+            }}
+          />
         </div>
 
         <RtlText

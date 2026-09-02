@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoginForm } from "@/components/auth/login-form";
+import { NafathButton } from "@/components/auth/nafath-button";
 import { t } from "@/lib/i18n/ar";
 
 export const metadata: Metadata = {
@@ -24,6 +25,7 @@ export default function LoginPage() {
           <CardDescription className="text-base">{t.auth.loginSubtitle}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          <NafathButton />
           <LoginForm />
           <p className="text-center text-sm text-muted-foreground">
             {t.auth.noAccount}{" "}

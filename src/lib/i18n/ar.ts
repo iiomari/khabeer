@@ -192,6 +192,12 @@ export const ar = {
     continueAsExpert: "متابعة كخبير",
     continueAsClient: "متابعة كباحث عن خبير",
     demoAccounts: "حسابات تجريبية",
+    or: "أو",
+    nafath: "الدخول عبر نفاذ",
+    nafathBadge: "محاكاة",
+    nafathHint: "محاكاة للربط المستقبلي مع النفاذ الوطني الموحّد — يفتح حساب خبير متقاعد جاهز للتجربة مباشرة.",
+    nafathLoading: "جارٍ التحقق من الهوية…",
+    nafathWelcome: "تم التحقق عبر نفاذ (محاكاة)",
   },
 
   expert: {

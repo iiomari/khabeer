@@ -3,47 +3,30 @@ import { cn } from "@/lib/utils";
 import { t } from "@/lib/i18n/ar";
 
 /**
- * Khabeer mark: the letter خ in the brand typeface, centred inside an ink-navy
- * squircle framed by a bronze ring — the frame keeps its distance from the
- * glyph, so the mark stays clean from favicon size up.
+ * Khabeer mark — التقاء: a wide ring (a long career) meeting a smaller one (the
+ * organisation that needs it). The overlap is the consultation itself, which is
+ * the whole product in one shape.
  */
 export function LogoMark({ className }: { className?: string }) {
   return (
     <span className={cn("inline-flex shrink-0", className)} aria-hidden="true">
       <svg viewBox="0 0 40 40" className="size-10" role="presentation">
-        <defs>
-          <linearGradient id="khabeer-mark" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="var(--color-primary)" />
-            <stop offset="100%" stopColor="color-mix(in oklch, var(--color-primary) 75%, black)" />
-          </linearGradient>
-        </defs>
-
-        <rect width="40" height="40" rx="11" fill="url(#khabeer-mark)" />
-
-        <rect
-          x="3.2"
-          y="3.2"
-          width="33.6"
-          height="33.6"
-          rx="8.6"
+        <circle
+          cx="14.5"
+          cy="20"
+          r="10.5"
+          fill="none"
+          stroke="var(--color-primary)"
+          strokeWidth="3.2"
+        />
+        <circle
+          cx="25.5"
+          cy="20"
+          r="7.5"
           fill="none"
           stroke="var(--color-accent)"
-          strokeWidth="1.5"
-          opacity="0.9"
+          strokeWidth="3.2"
         />
-
-        <text
-          x="20"
-          y="20"
-          textAnchor="middle"
-          dominantBaseline="central"
-          fill="var(--color-primary-foreground)"
-          fontSize="21"
-          fontWeight="600"
-          style={{ fontFamily: "var(--font-arabic), 'Segoe UI', Tahoma, sans-serif" }}
-        >
-          خ
-        </text>
       </svg>
     </span>
   );

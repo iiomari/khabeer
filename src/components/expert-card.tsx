@@ -40,7 +40,7 @@ export function ExpertCard({ expert }: { expert: ExpertCardData }) {
         />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
-            <h3 className="truncate text-base font-semibold">
+            <h3 className="text-base leading-snug font-semibold">
               <Link href={profileHref} className="hover:underline">
                 {expert.user.name}
               </Link>

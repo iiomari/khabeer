@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { loginSchema, registerSchema } from "@/lib/validation";
 import { t } from "@/lib/i18n/ar";
 import type { UserRole } from "@/lib/enums";
+import { DEMO_ACCOUNT_PASSWORD, NAFATH_DEMO_EMAIL } from "@/lib/demo";
 
 export type ActionResult = { ok: true; redirectTo: string } | { ok: false; error: string };
 
@@ -82,6 +83,35 @@ export async function registerAction(input: unknown): Promise<ActionResult> {
     ok: true,
     redirectTo: data.role === "EXPERT" ? "/expert/onboarding" : "/dashboard/client",
   };
+}
+
+/**
+ * Simulated Nafath sign-in: no national identity provider is contacted. It signs
+ * the visitor into a seeded retired-expert account so the intended flow can be
+ * demonstrated, and is the single place a real Nafath integration would replace.
+ */
+export async function nafathDemoLoginAction(): Promise<ActionResult> {
+  const user = await db.user.findUnique({
+    where: { email: NAFATH_DEMO_EMAIL },
+    select: { role: true, status: true },
+  });
+
+  if (!user || user.status !== "ACTIVE") {
+    return { ok: false, error: t.common.somethingWentWrong };
+  }
+
+  try {
+    await signIn("credentials", {
+      email: NAFATH_DEMO_EMAIL,
+      password: DEMO_ACCOUNT_PASSWORD,
+      redirect: false,
+    });
+  } catch (error) {
+    if (error instanceof AuthError) return { ok: false, error: t.common.somethingWentWrong };
+    throw error;
+  }
+
+  return { ok: true, redirectTo: ROLE_HOME[user.role as UserRole] };
 }
 
 export async function logoutAction() {

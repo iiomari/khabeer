@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, ArrowRight, Briefcase, Search, UserPlus } from "lucide-react";
+import { AlertCircle, ArrowLeft, Briefcase, Search, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -58,7 +58,7 @@ function RoleChoice({ onSelect }: { onSelect: (role: Role) => void }) {
             <span className="block font-semibold">{option.title}</span>
             <span className="mt-1 block text-sm text-muted-foreground">{option.hint}</span>
           </span>
-          <ArrowRight className="mt-2 size-4.5 shrink-0 text-muted-foreground" />
+          <ArrowLeft className="mt-2 size-4.5 shrink-0 text-muted-foreground" />
         </button>
       ))}
     </div>
