@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>خبير</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body {
+      margin: 0; min-height: 100dvh;
+      display: grid; place-content: center; justify-items: center;
+      gap: 1.25rem; padding: 2rem;
+      background: #FAF7F2; color: #17233D;
+      font-family: -apple-system, "SF Arabic", "Segoe UI", Tahoma, sans-serif;
+      text-align: center;
+    }
+    @media (prefers-color-scheme: dark) { body { background: #0C1220; color: #EDF1F8; } }
+    h1 { font-size: 1.35rem; margin: 0; font-weight: 700; }
+    p { margin: 0; max-width: 30ch; line-height: 1.7; opacity: .7; font-size: .95rem; }
+    button {
+      margin-top: .5rem; padding: .85rem 1.75rem;
+      font: inherit; font-weight: 600; color: #fff;
+      background: #22355C; border: 0; border-radius: 12px;
+    }
+    button:active { opacity: .8; }
+  </style>
+</head>
+<body>
+  <svg width="64" height="64" viewBox="0 0 48 48" aria-hidden="true">
+    <path fill="currentColor" d="M21.75 44.00Q19.13 44.00 17.15 43.00Q15.16 42.00 14.06 40.19Q12.97 38.38 12.97 35.99Q12.97 33.95 13.78 32.26Q14.58 30.56 16.16 29.17Q17.24 28.25 18.69 27.42Q20.13 26.59 22.17 25.81Q24.21 25.02 26.98 24.25Q26.71 23.36 26.48 22.57Q26.25 21.78 26.06 21.13Q25.48 18.85 24.23 17.74Q22.98 16.62 20.90 16.62Q19.67 16.62 18.22 17.06Q16.78 17.51 15.16 18.39L13.12 14.16Q14.97 13.16 17.40 12.58Q19.82 12.00 22.09 12.00Q25.94 12.00 28.18 13.83Q30.41 15.66 31.03 19.43Q31.45 21.86 31.97 23.38Q32.49 24.90 33.24 25.88Q33.99 26.86 35.03 27.67L32.11 31.45Q31.14 30.68 30.37 29.87Q29.60 29.06 28.99 28.21Q27.45 28.60 26.19 28.98Q24.94 29.37 24.02 29.69Q23.10 30.02 22.48 30.33Q20.59 31.29 19.59 32.60Q18.59 33.91 18.59 35.68Q18.59 37.30 19.80 38.30Q21.02 39.30 22.90 39.30Q24.21 39.30 25.62 39.09Q27.02 38.88 28.56 38.49L29.22 42.69Q27.99 43.11 26.73 43.42Q25.48 43.73 24.25 43.87Q23.02 44.00 21.75 44.00Z"/>
+    <circle cx="24" cy="6.2" r="3.2" fill="#A9762F"/>
+  </svg>
+  <h1>لا يوجد اتصال بالإنترنت</h1>
+  <p>خبير يحتاج اتصالًا ليعرض الخبراء ويحلّل مشكلتك. تأكد من اتصالك ثم أعد المحاولة.</p>
+  <button onclick="location.replace('https://khabeer-inky.vercel.app')">أعد المحاولة</button>
+</body>
+</html>

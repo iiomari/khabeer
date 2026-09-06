@@ -1,0 +1,23 @@
+{
+  "name": "khabeer-mobile",
+  "version": "1.0.0",
+  "private": true,
+  "description": "غلاف iOS لمنصة خبير — يفتح الموقع المنشور داخل تطبيق أصلي",
+  "scripts": {
+    "assets": "capacitor-assets generate --ios",
+    "sync": "cap sync ios",
+    "add:ios": "cap add ios",
+    "open:ios": "cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/core": "^8.5.1",
+    "@capacitor/ios": "^8.5.1",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.3"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.5.1"
+  }
+}
