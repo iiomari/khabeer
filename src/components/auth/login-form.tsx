@@ -13,7 +13,7 @@ import { loginAction } from "@/server/actions/auth";
 import { loginSchema, type LoginInput } from "@/lib/validation";
 import { t } from "@/lib/i18n/ar";
 
-export function LoginForm() {
+export function LoginForm({ next }: { next?: string }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
@@ -32,7 +32,7 @@ export function LoginForm() {
     startTransition(async () => {
       const result = await loginAction(values);
       if (result.ok) {
-        router.push(result.redirectTo);
+        router.push(next ?? result.redirectTo);
         router.refresh();
       } else {
         setFormError(result.error);

@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BadgeCheck } from "lucide-react";
+import { BadgeCheck, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { UserAvatar } from "@/components/user-avatar";
 import { EmptyState } from "@/components/empty-state";
-import { getAdminStats } from "@/server/stats";
+import { CategoryIcon } from "@/components/category-icon";
+import { getAdminStats, getDemandPulse } from "@/server/stats";
 import { db } from "@/lib/db";
 import { requireRole } from "@/server/session";
 import { formatNumber, formatSar, formatShortDate } from "@/lib/format";
@@ -18,8 +19,9 @@ export const metadata: Metadata = { title: t.admin.title };
 export default async function AdminOverviewPage() {
   await requireRole("ADMIN");
 
-  const [stats, pending, recentBookings] = await Promise.all([
+  const [stats, demand, pending, recentBookings] = await Promise.all([
     getAdminStats(),
+    getDemandPulse(),
     db.expertProfile.findMany({
       where: { verificationStatus: "PENDING" },
       orderBy: { publishedAt: "desc" },
@@ -76,6 +78,42 @@ export default async function AdminOverviewPage() {
           tone="success"
         />
       </div>
+
+      {demand.length > 0 ? (
+        <section className="space-y-4">
+          <div>
+            <h2 className="inline-flex items-center gap-2 text-lg font-bold">
+              <TrendingUp className="size-5 text-accent" />
+              {t.match.demandPulse}
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">{t.match.demandPulseHint}</p>
+          </div>
+
+          <Card className="gap-4 p-5">
+            <ul className="space-y-3.5">
+              {demand.map((entry) => (
+                <li key={entry.id} className="space-y-1.5">
+                  <div className="flex items-center justify-between gap-3 text-sm">
+                    <span className="inline-flex items-center gap-2 font-medium">
+                      <CategoryIcon name={entry.icon} className="size-4 text-primary" />
+                      {entry.name}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {formatNumber(entry.count)} {t.match.requestsCount}
+                    </span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-primary"
+                      style={{ width: `${Math.max(6, Math.round(entry.share * 100))}%` }}
+                    />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        </section>
+      ) : null}
 
       <section className="space-y-4">
         <div className="flex items-center justify-between gap-3">

@@ -16,7 +16,12 @@ const DEMO_ACCOUNTS = [
   { label: "مشرف", email: "admin@khabeer.sa" },
 ];
 
-export default function LoginPage() {
+export default async function LoginPage({ searchParams }: PageProps<"/auth/login">) {
+  const params = await searchParams;
+  const raw = Array.isArray(params.next) ? params.next[0] : params.next;
+  // Only same-site paths — never bounce a signed-in user to an arbitrary URL.
+  const next = raw?.startsWith("/") && !raw.startsWith("//") ? raw : undefined;
+
   return (
     <div className="w-full max-w-md space-y-4">
       <Card className="p-2">
@@ -26,7 +31,7 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent className="space-y-6">
           <NafathButton />
-          <LoginForm />
+          <LoginForm next={next} />
           <p className="text-center text-sm text-muted-foreground">
             {t.auth.noAccount}{" "}
             <Link href="/auth/register" className="font-semibold text-primary hover:underline">

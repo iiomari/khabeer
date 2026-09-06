@@ -29,6 +29,12 @@ export const registerSchema = z
     path: ["confirmPassword"],
   });
 
+export const problemSchema = z.object({
+  text: z.string().trim().min(20, v.problemMin).max(1500, v.problemMax),
+});
+
+export type ProblemInput = z.infer<typeof problemSchema>;
+
 export const accountSettingsSchema = z.object({
   name: z.string().min(2, v.nameMin).max(80, v.tooLong(80)),
   phone: z
@@ -117,7 +123,9 @@ export const availabilitySchema = z
 export const bookingSchema = z.object({
   serviceId: z.string().min(1, v.required),
   scheduledAt: z.string().min(1, v.required),
-  description: z.string().min(20, v.tooShort(20)).max(1000, v.tooLong(1000)),
+  description: z.string().min(20, v.tooShort(20)).max(2000, v.tooLong(2000)),
+  /** Present when the booking came out of an AI match. */
+  requestId: z.string().optional(),
 });
 
 export const paymentSchema = z

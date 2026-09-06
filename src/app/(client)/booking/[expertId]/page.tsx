@@ -6,21 +6,44 @@ import { SiteHeader } from "@/components/site-header";
 import { BookingFlow } from "@/components/booking/booking-flow";
 import { getExpertProfile } from "@/server/experts";
 import { requireRole } from "@/server/session";
+import { db } from "@/lib/db";
 import { t } from "@/lib/i18n/ar";
 
 export const metadata: Metadata = { title: t.booking.title };
 
 export default async function BookingPage({ params, searchParams }: PageProps<"/booking/[expertId]">) {
-  await requireRole("CLIENT");
-
   const { expertId } = await params;
   const query = await searchParams;
   const serviceParam = Array.isArray(query.service) ? query.service[0] : query.service;
+  const requestParam = Array.isArray(query.request) ? query.request[0] : query.request;
+
+  // Guests coming from a match land back here after signing in, brief intact.
+  await requireRole(
+    "CLIENT",
+    `/booking/${expertId}${requestParam ? `?request=${requestParam}` : ""}`,
+  );
 
   const expert = await getExpertProfile(expertId);
   if (!expert || expert.verificationStatus !== "VERIFIED" || expert.services.length === 0) {
     notFound();
   }
+
+  const request = requestParam
+    ? await db.consultationRequest.findUnique({
+        where: { id: requestParam },
+        select: { id: true, reframedQuestion: true, rawText: true, suggestedMinutes: true },
+      })
+    : null;
+
+  // Pick the offered service whose length is closest to what the brief suggested.
+  const matchedService = request
+    ? expert.services.reduce((best, current) =>
+        Math.abs(current.durationMinutes - request.suggestedMinutes) <
+        Math.abs(best.durationMinutes - request.suggestedMinutes)
+          ? current
+          : best,
+      )
+    : null;
 
   return (
     <>
@@ -40,7 +63,9 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
         <BookingFlow
           expertId={expertId}
           expertName={expert.user.name}
-          initialServiceId={serviceParam}
+          initialServiceId={serviceParam ?? matchedService?.id}
+          requestId={request?.id}
+          initialDescription={request ? `${request.reframedQuestion}\n\n${request.rawText}` : undefined}
           services={expert.services.map((service) => ({
             id: service.id,
             name: service.name,

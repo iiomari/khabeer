@@ -53,6 +53,23 @@ export async function createBookingAction(input: unknown): Promise<BookingAction
   const free = await isSlotFree(expertUserId, scheduledAt, service.durationMinutes);
   if (!free) return { ok: false, error: t.booking.slotTaken };
 
+  // Attach the brief only if it really exists, and claim it for this client.
+  const requestId = parsedBooking.data.requestId
+    ? (
+        await db.consultationRequest.findUnique({
+          where: { id: parsedBooking.data.requestId },
+          select: { id: true },
+        })
+      )?.id
+    : undefined;
+
+  if (requestId) {
+    await db.consultationRequest.updateMany({
+      where: { id: requestId, clientId: null },
+      data: { clientId: user.id },
+    });
+  }
+
   const charge = await getPaymentProvider().charge({
     bookingRef: makeBookingRef(),
     amountSar: service.priceSar,
@@ -72,6 +89,7 @@ export async function createBookingAction(input: unknown): Promise<BookingAction
       durationMinutes: service.durationMinutes,
       priceSar: service.priceSar,
       description: parsedBooking.data.description,
+      requestId: requestId ?? null,
       status: "PENDING",
       payment: {
         create: {

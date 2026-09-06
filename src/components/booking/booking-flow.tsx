@@ -60,19 +60,26 @@ export function BookingFlow({
   expertName,
   services,
   initialServiceId,
+  requestId,
+  initialDescription,
 }: {
   expertId: string;
   expertName: string;
   services: Service[];
   initialServiceId?: string;
+  /** Set when the client arrived from an AI match — links the booking back to the brief. */
+  requestId?: string;
+  initialDescription?: string;
 }) {
   const router = useRouter();
-  const [step, setStep] = useState(0);
+  // Arriving from a match means the service and the description are already settled,
+  // so the flow opens on the only thing still to decide: the time.
+  const [step, setStep] = useState(requestId ? 1 : 0);
   const [serviceId, setServiceId] = useState(initialServiceId ?? services[0]?.id ?? "");
   const [slotState, setSlotState] = useState<{ serviceId: string; days: DaySlots[] } | null>(null);
   const [pickedDay, setPickedDay] = useState<string | null>(null);
   const [pickedSlot, setPickedSlot] = useState<string | null>(null);
-  const [description, setDescription] = useState("");
+  const [description, setDescription] = useState(initialDescription ?? "");
   const [method, setMethod] = useState<(typeof PAYMENT_METHODS)[number]["value"]>("MADA");
   const [card, setCard] = useState({ cardName: "", cardNumber: "", expiry: "", cvv: "" });
   const [error, setError] = useState<string | null>(null);
@@ -121,7 +128,7 @@ export function BookingFlow({
 
   function back() {
     setError(null);
-    setStep((current) => Math.max(current - 1, 0));
+    setStep((current) => Math.max(current - 1, requestId ? 1 : 0));
   }
 
   function submit() {
@@ -131,6 +138,7 @@ export function BookingFlow({
         serviceId,
         scheduledAt: selectedSlot,
         description,
+        requestId,
         method,
         ...card,
         cardNumber: card.cardNumber.replace(/\s/g, ""),

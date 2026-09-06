@@ -22,7 +22,8 @@ export default auth((req) => {
 
   if (!user) {
     const loginUrl = new URL("/auth/login", req.nextUrl);
-    loginUrl.searchParams.set("next", pathname);
+    // Keep the query too — a booking carries its brief id there.
+    loginUrl.searchParams.set("next", pathname + req.nextUrl.search);
     return NextResponse.redirect(loginUrl);
   }
 

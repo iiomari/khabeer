@@ -81,3 +81,32 @@ export async function getTestimonials(limit = 3) {
     },
   });
 }
+
+/**
+ * Which fields clients actually ask about, taken from the briefs rather than from
+ * the categories experts self-select. This is the signal that tells the platform
+ * where to recruit next.
+ */
+export async function getDemandPulse(limit = 6) {
+  const grouped = await db.consultationRequest.groupBy({
+    by: ["categoryId"],
+    _count: { _all: true },
+    orderBy: { _count: { categoryId: "desc" } },
+    take: limit,
+  });
+
+  const ids = grouped.map((row) => row.categoryId).filter((id): id is string => id !== null);
+  const categories = await db.category.findMany({
+    where: { id: { in: ids } },
+    select: { id: true, name: true, slug: true, icon: true },
+  });
+
+  const byId = new Map(categories.map((category) => [category.id, category]));
+  const total = grouped.reduce((sum, row) => sum + row._count._all, 0);
+
+  return grouped.flatMap((row) => {
+    const category = row.categoryId ? byId.get(row.categoryId) : null;
+    if (!category) return [];
+    return [{ ...category, count: row._count._all, share: total ? row._count._all / total : 0 }];
+  });
+}

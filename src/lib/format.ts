@@ -74,11 +74,19 @@ export function minutesToTimeLabel(minutes: number): string {
   return `${displayHour}:${String(mins).padStart(2, "0")} ${period}`;
 }
 
+/** Particles that carry no identity — "طلال بن محمد الحربي" should read as طح, not طب. */
+const NAME_PARTICLES = new Set(["بن", "ابن", "بنت", "أبو", "ابو", "آل", "ال", "عبد"]);
+
 export function initials(name: string): string {
-  return name
-    .split(" ")
+  const parts = name
+    .split(/\s+/)
     .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("");
+    .filter((part) => !NAME_PARTICLES.has(part));
+
+  if (parts.length === 0) return name.trim().slice(0, 2);
+
+  // First name plus family name, with the definite article stripped off the latter.
+  const first = parts[0];
+  const last = parts.length > 1 ? parts[parts.length - 1].replace(/^ال/, "") : "";
+  return `${first[0] ?? ""}${last[0] ?? ""}` || first.slice(0, 2);
 }

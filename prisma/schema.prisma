@@ -37,6 +37,7 @@ model User {
   favorites           Favorite[]     @relation("ClientFavorites")
   favoritedBy         Favorite[]     @relation("ExpertFavoritedBy")
   notifications       Notification[]
+  requests            ConsultationRequest[]
 
   @@index([role])
   @@index([status])
@@ -151,6 +152,7 @@ model Category {
   sortOrder   Int              @default(0)
   createdAt   DateTime         @default(now())
   experts     ExpertCategory[]
+  requests    ConsultationRequest[]
 }
 
 model ExpertCategory {
@@ -205,6 +207,10 @@ model Booking {
   priceSar        Int
   description     String
 
+  /// Set when the booking came out of an AI match, so the expert can see the brief.
+  requestId String?
+  request   ConsultationRequest? @relation(fields: [requestId], references: [id], onDelete: SetNull)
+
   /// PENDING | CONFIRMED | REJECTED | CANCELLED | COMPLETED
   status       String    @default("PENDING")
   statusReason String?
@@ -220,6 +226,40 @@ model Booking {
   @@index([expertId, status])
   @@index([scheduledAt])
   @@index([serviceId])
+  @@index([requestId])
+}
+
+/// A problem written in the client's own words, plus the structured brief derived
+/// from it. Kept even when the visitor never signs in, so the brief survives the
+/// trip through the login screen and can be attached to the booking afterwards.
+model ConsultationRequest {
+  id       String  @id @default(cuid())
+  clientId String?
+  client   User?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  rawText  String
+  /// sha256 of the normalised text — lets an identical problem reuse a fresh brief.
+  textHash String
+
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  reframedQuestion String
+  keySkills        String[]
+  questionsToAsk   String[]
+  suggestedMinutes Int
+  budgetMinSar     Int
+  budgetMaxSar     Int
+
+  /// claude | heuristic — which engine produced this brief.
+  engine String
+
+  createdAt DateTime  @default(now())
+  bookings  Booking[]
+
+  @@index([textHash, createdAt])
+  @@index([categoryId, createdAt])
+  @@index([clientId, createdAt])
 }
 
 model Payment {

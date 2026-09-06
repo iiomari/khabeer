@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, CalendarClock, CheckCircle2, Clock, Lock, Receipt } from "lucide-react";
+import { ArrowRight, CalendarClock, CheckCircle2, Clock, Lock, Receipt, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -37,6 +37,7 @@ export default async function BookingDetailPage({
       payment: true,
       review: true,
       conversation: true,
+      request: { include: { category: { select: { name: true, icon: true } } } },
       client: { select: { id: true, name: true, avatarUrl: true, email: true, phone: true } },
       expert: {
         select: {
@@ -124,6 +125,59 @@ export default async function BookingDetailPage({
                 {booking.description}
               </p>
             </div>
+
+            {booking.request ? (
+              <div className="rounded-xl border border-primary/25 bg-brand-soft/40 p-4">
+                <h2 className="inline-flex items-center gap-1.5 font-semibold">
+                  <Sparkles className="size-4.5 text-accent" />
+                  {t.match.briefForExpert}
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">{t.match.briefForExpertHint}</p>
+
+                <dl className="mt-4 space-y-3">
+                  {booking.request.category ? (
+                    <div className="flex items-center gap-2">
+                      <dt className="text-sm text-muted-foreground">{t.match.field}</dt>
+                      <dd>
+                        <Badge variant="secondary">{booking.request.category.name}</Badge>
+                      </dd>
+                    </div>
+                  ) : null}
+
+                  <div>
+                    <dt className="text-sm text-muted-foreground">{t.match.realQuestion}</dt>
+                    <dd className="mt-1 leading-relaxed font-medium">
+                      {booking.request.reframedQuestion}
+                    </dd>
+                  </div>
+
+                  <div>
+                    <dt className="text-sm text-muted-foreground">{t.match.neededSkills}</dt>
+                    <dd className="mt-1.5 flex flex-wrap gap-2">
+                      {booking.request.keySkills.map((skill) => (
+                        <Badge key={skill} variant="outline" className="font-normal">
+                          {skill}
+                        </Badge>
+                      ))}
+                    </dd>
+                  </div>
+
+                  <div>
+                    <dt className="text-sm text-muted-foreground">{t.match.askThese}</dt>
+                    <dd>
+                      <ol className="mt-1.5 space-y-1.5">
+                        {booking.request.questionsToAsk.map((question, index) => (
+                          <li key={question} className="flex gap-2.5 text-sm leading-relaxed">
+                            <span className="font-semibold text-primary">{index + 1}.</span>
+                            <span>{question}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            ) : null}
 
             {booking.statusReason ? (
               <Alert>

@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ExpertCard } from "@/components/expert-card";
 import { CategoryIcon } from "@/components/category-icon";
-import { HeroVisual } from "@/components/home/hero-visual";
+import { ProblemBox } from "@/components/home/problem-box";
 import { HowItWorks } from "@/components/home/how-it-works";
 import { Testimonials } from "@/components/home/testimonials";
 import { Faq } from "@/components/home/faq";
@@ -32,7 +32,7 @@ export default async function HomePage() {
   return (
     <>
       <section className="hero-grid border-b">
-        <div className="container-page grid items-center gap-12 py-16 lg:grid-cols-2 lg:py-24">
+        <div className="container-page grid items-center gap-12 py-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:py-24">
           <div className="fade-up space-y-7">
             <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 text-sm">
               <Sparkles className="size-4 text-accent" />
@@ -47,18 +47,6 @@ export default async function HomePage() {
               {t.home.heroSubtitle}
             </p>
 
-            <div className="flex flex-wrap gap-3">
-              <Button size="lg" className="h-13 px-7 text-base" asChild>
-                <Link href="/experts">
-                  {t.home.ctaPrimary}
-                  <ArrowLeft className="size-4.5" />
-                </Link>
-              </Button>
-              <Button size="lg" variant="outline" className="h-13 px-7 text-base" asChild>
-                <Link href="/auth/register?role=EXPERT">{t.home.ctaSecondary}</Link>
-              </Button>
-            </div>
-
             <dl className="grid max-w-lg grid-cols-2 gap-4 border-t pt-7 sm:grid-cols-4">
               {statCards.map((stat) => (
                 <div key={stat.label}>
@@ -68,9 +56,22 @@ export default async function HomePage() {
                 </div>
               ))}
             </dl>
+
+            <Button size="lg" variant="outline" className="h-13 px-7 text-base" asChild>
+              <Link href="/auth/register?role=EXPERT">
+                {t.home.ctaSecondary}
+                <ArrowLeft className="size-4.5" />
+              </Link>
+            </Button>
           </div>
 
-          <HeroVisual />
+          <div className="fade-up space-y-4" style={{ animationDelay: "80ms" }}>
+            <div>
+              <h2 className="text-xl font-bold sm:text-2xl">{t.match.boxTitle}</h2>
+              <p className="mt-1.5 text-muted-foreground">{t.match.boxSubtitle}</p>
+            </div>
+            <ProblemBox />
+          </div>
         </div>
       </section>
 

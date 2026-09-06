@@ -22,14 +22,15 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
   };
 }
 
-export async function requireUser(): Promise<SessionUser> {
+/** `next` is where to return after signing in — used when a guest hits a gated page mid-task. */
+export async function requireUser(next?: string): Promise<SessionUser> {
   const user = await getCurrentUser();
-  if (!user) redirect("/auth/login");
+  if (!user) redirect(next ? `/auth/login?next=${encodeURIComponent(next)}` : "/auth/login");
   return user;
 }
 
-export async function requireRole(role: UserRole): Promise<SessionUser> {
-  const user = await requireUser();
+export async function requireRole(role: UserRole, next?: string): Promise<SessionUser> {
+  const user = await requireUser(next);
   if (user.role !== role) redirect("/");
   return user;
 }
