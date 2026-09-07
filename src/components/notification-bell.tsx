@@ -50,8 +50,20 @@ export function NotificationBell() {
 
   async function markAllRead() {
     setUnread(0);
-    setItems((current) => current.map((item) => ({ ...item, isRead: true })));
+    setItems([]);
     await fetch("/api/notifications", { method: "POST", body: JSON.stringify({}) });
+  }
+
+  /**
+   * Opening a notification is the act of dealing with it, so it leaves the list
+   * straight away rather than lingering as a read-but-still-there row. The state
+   * updates before the request so navigation is never waiting on the network.
+   */
+  function openNotification(id: string) {
+    setItems((current) => current.filter((item) => item.id !== id));
+    setUnread((current) => Math.max(0, current - 1));
+    setOpen(false);
+    void fetch("/api/notifications", { method: "POST", body: JSON.stringify({ id }) });
   }
 
   return (
@@ -93,7 +105,7 @@ export function NotificationBell() {
                 <li key={item.id}>
                   <Link
                     href={item.linkUrl ?? "#"}
-                    onClick={() => setOpen(false)}
+                    onClick={() => openNotification(item.id)}
                     className={cn(
                       "block px-3 py-3 transition-colors hover:bg-muted/60",
                       !item.isRead && "bg-brand-soft/60",

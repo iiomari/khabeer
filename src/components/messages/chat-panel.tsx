@@ -1,7 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Check, CheckCheck, Loader2, SendHorizontal } from "lucide-react";
+import {
+  Check,
+  CheckCheck,
+  Download,
+  Image as ImageIcon,
+  Loader2,
+  Paperclip,
+  SendHorizontal,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,6 +21,9 @@ type ChatMessage = {
   id: string;
   senderId: string;
   body: string;
+  attachmentUrl: string | null;
+  attachmentName: string | null;
+  attachmentType: string | null;
   readAt: string | null;
   createdAt: string;
 };
@@ -37,7 +48,10 @@ export function ChatPanel({
   const [messages, setMessages] = useState<ChatMessage[] | null>(null);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const loadMessages = useCallback(async () => {
     try {
@@ -63,6 +77,35 @@ export function ChatPanel({
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
   }, [messages]);
+
+  /** Sends a file with whatever is already typed as its caption. */
+  async function upload(file: File) {
+    if (uploading) return;
+    setUploading(true);
+    setError(null);
+
+    const form = new FormData();
+    form.set("file", file);
+    if (draft.trim()) form.set("body", draft.trim());
+
+    try {
+      const response = await fetch(`/api/conversations/${conversationId}/attachments`, {
+        method: "POST",
+        body: form,
+      });
+      const data = (await response.json().catch(() => ({}))) as { ok?: boolean; error?: string };
+      if (response.ok && data.ok) {
+        setDraft("");
+        await loadMessages();
+      } else {
+        setError(data.error ?? t.common.somethingWentWrong);
+      }
+    } catch {
+      setError(t.common.somethingWentWrong);
+    } finally {
+      setUploading(false);
+    }
+  }
 
   async function send() {
     const body = draft.trim();
@@ -119,6 +162,26 @@ export function ChatPanel({
                       : "rounded-se-sm bg-muted",
                   )}
                 >
+                  {message.attachmentUrl ? (
+                    <a
+                      href={message.attachmentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={cn(
+                        "mb-2 flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm transition-opacity hover:opacity-80",
+                        isMine ? "bg-primary-foreground/15" : "bg-background",
+                      )}
+                    >
+                      {message.attachmentType?.startsWith("image/") ? (
+                        <ImageIcon className="size-4 shrink-0" />
+                      ) : (
+                        <Paperclip className="size-4 shrink-0" />
+                      )}
+                      <span className="min-w-0 flex-1 truncate">{message.attachmentName}</span>
+                      <Download className="size-3.5 shrink-0 opacity-70" />
+                    </a>
+                  ) : null}
+
                   <p className="text-sm leading-relaxed whitespace-pre-line">{message.body}</p>
                   <div
                     className={cn(
@@ -143,7 +206,41 @@ export function ChatPanel({
         )}
       </div>
 
+      {error ? (
+        <p className="border-t bg-destructive/10 px-3 py-2 text-center text-xs text-destructive" role="status">
+          {error}
+        </p>
+      ) : null}
+
       <div className="flex items-end gap-2 border-t p-3">
+        <input
+          ref={fileRef}
+          type="file"
+          hidden
+          accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.csv"
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (file) void upload(file);
+            event.target.value = "";
+          }}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="size-11 shrink-0"
+          onClick={() => fileRef.current?.click()}
+          disabled={sending || uploading}
+          aria-label={t.messages.attach}
+          title={t.messages.attachmentHint}
+        >
+          {uploading ? (
+            <Loader2 className="size-4.5 animate-spin" />
+          ) : (
+            <Paperclip className="size-4.5" />
+          )}
+        </Button>
+
         <Textarea
           value={draft}
           onChange={(event) => setDraft(event.target.value)}

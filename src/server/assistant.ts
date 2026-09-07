@@ -1,6 +1,45 @@
 import { db } from "@/lib/db";
+import { normalizeArabic } from "@/lib/ai/lexicon";
 import { formatDateTime, formatSar } from "@/lib/format";
 import type { SessionUser } from "@/server/session";
+
+/**
+ * A snapshot of who is actually available, so "who can help with X" is answered
+ * from the live roster instead of invented. Kept small — names and fields only.
+ */
+export async function getRosterContext(question: string): Promise<string> {
+  const experts = await db.expertProfile.findMany({
+    where: { verificationStatus: "VERIFIED", user: { status: "ACTIVE" } },
+    orderBy: [{ ratingAvg: "desc" }],
+    take: 40,
+    select: {
+      yearsOfExperience: true,
+      minPriceSar: true,
+      city: true,
+      user: { select: { name: true } },
+      categories: { select: { category: { select: { name: true } } } },
+      skills: { select: { name: true }, take: 4 },
+    },
+  });
+
+  const needle = normalizeArabic(question);
+  const relevant = experts.filter((expert) =>
+    [...expert.categories.map((c) => c.category.name), ...expert.skills.map((s) => s.name)].some(
+      (term) => needle.includes(normalizeArabic(term)),
+    ),
+  );
+
+  const shortlist = (relevant.length > 0 ? relevant : experts).slice(0, 8);
+
+  return shortlist
+    .map(
+      (expert) =>
+        `- ${expert.user.name} · ${expert.categories.map((c) => c.category.name).join("، ")} · ` +
+        `${expert.yearsOfExperience} سنة · ${expert.city ?? "—"} · ` +
+        `يبدأ من ${expert.minPriceSar ?? "—"} ر.س · ${expert.skills.map((s) => s.name).join("، ")}`,
+    )
+    .join("\n");
+}
 
 /**
  * A short, factual snapshot of *this* user's own account, handed to the

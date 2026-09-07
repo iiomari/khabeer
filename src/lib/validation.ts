@@ -24,10 +24,32 @@ export const registerSchema = z
     city: z.string().optional(),
     isCompany: z.boolean().optional(),
     companyName: z.string().max(120, v.tooLong(120)).optional(),
+    // Company-only fields, required conditionally below.
+    commercialRegistration: z.string().optional(),
+    industry: z.string().optional(),
+    employeeCount: z.string().optional(),
+    contactTitle: z.string().optional(),
+    website: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: v.passwordMismatch,
     path: ["confirmPassword"],
+  })
+  .superRefine((data, ctx) => {
+    if (data.role !== "CLIENT" || !data.isCompany) return;
+
+    // A company account carries obligations an individual account does not, so the
+    // registration number is required here rather than left to be filled in later.
+    if (!data.companyName?.trim()) {
+      ctx.addIssue({ code: "custom", message: v.required, path: ["companyName"] });
+    }
+
+    const cr = (data.commercialRegistration ?? "").replace(/\D/g, "");
+    if (!cr) {
+      ctx.addIssue({ code: "custom", message: v.required, path: ["commercialRegistration"] });
+    } else if (cr.length !== 10) {
+      ctx.addIssue({ code: "custom", message: v.invalidCr, path: ["commercialRegistration"] });
+    }
   });
 
 export const problemSchema = z.object({

@@ -10,7 +10,7 @@ import {
   type RankedMatch,
 } from "./provider";
 
-const MODEL = "claude-sonnet-5";
+const MODEL = "claude-opus-5";
 
 /** Pulls the first JSON object out of a reply, tolerating stray prose or code fences. */
 function parseJson(raw: string): unknown {

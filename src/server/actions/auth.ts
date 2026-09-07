@@ -66,6 +66,13 @@ export async function registerAction(input: unknown): Promise<ActionResult> {
               create: {
                 isCompany: Boolean(data.isCompany),
                 companyName: data.companyName || null,
+                commercialRegistration: data.isCompany
+                  ? (data.commercialRegistration ?? "").replace(/[^0-9]/g, "") || null
+                  : null,
+                industry: data.industry || null,
+                employeeCount: data.employeeCount || null,
+                contactTitle: data.contactTitle || null,
+                website: data.website || null,
               },
             },
           }),

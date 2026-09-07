@@ -9,6 +9,7 @@ import { UserAvatar } from "@/components/user-avatar";
 import { RatingStars } from "@/components/rating-stars";
 import { EmptyState } from "@/components/empty-state";
 import { ExpertVerificationActions } from "@/components/admin/expert-verification-actions";
+import { LicenseReview } from "@/components/admin/license-review";
 import { UserStatusToggle } from "@/components/admin/user-status-toggle";
 import { db } from "@/lib/db";
 import { requireRole } from "@/server/session";
@@ -25,7 +26,7 @@ export default async function AdminExpertsPage() {
     include: {
       user: { select: { id: true, name: true, email: true, avatarUrl: true, status: true } },
       certifications: true,
-      categories: { include: { category: { select: { name: true } } } },
+      categories: { include: { category: { select: { name: true, requiresLicense: true } } } },
       _count: { select: { services: true } },
     },
   });
@@ -118,6 +119,20 @@ export default async function AdminExpertsPage() {
               ))}
             </ul>
           </div>
+        ) : null}
+
+        {profile.categories.some((link) => link.category.requiresLicense) ? (
+          <LicenseReview
+            expertProfileId={profile.id}
+            status={profile.licenseStatus}
+            fieldNames={profile.categories
+              .filter((link) => link.category.requiresLicense)
+              .map((link) => link.category.name)}
+            licenseNumber={profile.licenseNumber}
+            licenseIssuer={profile.licenseIssuer}
+            licenseExpiry={profile.licenseExpiry?.toISOString() ?? null}
+            licenseDocUrl={profile.licenseDocUrl}
+          />
         ) : null}
 
         {profile.verificationStatus !== "VERIFIED" ? (

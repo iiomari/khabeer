@@ -5,6 +5,8 @@ import { ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ProfileBuilder } from "@/components/expert/profile-builder";
+import { LicenseForm } from "@/components/expert/license-form";
+import { evaluateLicense } from "@/server/licensing";
 import { db } from "@/lib/db";
 import { requireRole } from "@/server/session";
 import { t } from "@/lib/i18n/ar";
@@ -18,7 +20,9 @@ export default async function ExpertProfilePage() {
     db.expertProfile.findUnique({
       where: { userId: user.id },
       include: {
-        categories: { include: { category: { select: { id: true, name: true } } } },
+        categories: {
+          include: { category: { select: { id: true, name: true, requiresLicense: true } } },
+        },
         experiences: { orderBy: { startYear: "desc" } },
         educations: true,
         certifications: true,
@@ -31,6 +35,11 @@ export default async function ExpertProfilePage() {
   ]);
 
   if (!profile) redirect("/dashboard/expert");
+
+  const licence = evaluateLicense({
+    licenseStatus: profile.licenseStatus,
+    categories: profile.categories.map((link) => link.category),
+  });
 
   const statusLabel =
     t.admin.verificationStatuses[
@@ -55,6 +64,19 @@ export default async function ExpertProfilePage() {
           </div>
         </div>
       </header>
+
+      <LicenseForm
+        status={licence.status}
+        regulated={licence.regulated}
+        fieldNames={profile.categories
+          .filter((link) => link.category.requiresLicense)
+          .map((link) => link.category.name)}
+        licenseNumber={profile.licenseNumber}
+        licenseIssuer={profile.licenseIssuer}
+        licenseExpiry={profile.licenseExpiry?.toISOString().slice(0, 10) ?? null}
+        licenseDocUrl={profile.licenseDocUrl}
+        rejectionReason={profile.licenseRejectionReason}
+      />
 
       <ProfileBuilder profile={profile} categories={categories} initialStep={1} />
     </div>

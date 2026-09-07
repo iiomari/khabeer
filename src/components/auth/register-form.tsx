@@ -25,6 +25,8 @@ import { cn } from "@/lib/utils";
 
 type Role = "EXPERT" | "CLIENT";
 
+const EMPLOYEE_RANGES = ["١–١٠", "١١–٥٠", "٥١–٢٠٠", "٢٠١–٥٠٠", "أكثر من ٥٠٠"];
+
 function RoleChoice({ onSelect }: { onSelect: (role: Role) => void }) {
   const options = [
     {
@@ -207,9 +209,78 @@ export function RegisterForm({ initialRole }: { initialRole?: Role }) {
             </Label>
           </div>
 
-          <div className={cn("space-y-2", !isCompany && "hidden")}>
-            <Label htmlFor="companyName">{t.auth.companyName}</Label>
-            <Input id="companyName" className="h-12" {...register("companyName")} />
+          <div className={cn("space-y-4", !isCompany && "hidden")}>
+            <div className="space-y-2">
+              <Label htmlFor="companyName">{t.auth.companyName}</Label>
+              <Input
+                id="companyName"
+                className="h-12"
+                aria-invalid={Boolean(errors.companyName)}
+                {...register("companyName")}
+              />
+              {errors.companyName ? (
+                <p className="text-sm text-destructive">{errors.companyName.message}</p>
+              ) : null}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="commercialRegistration">{t.auth.commercialRegistration}</Label>
+              <Input
+                id="commercialRegistration"
+                dir="ltr"
+                inputMode="numeric"
+                placeholder="1010XXXXXX"
+                className="h-12 text-start"
+                aria-invalid={Boolean(errors.commercialRegistration)}
+                {...register("commercialRegistration")}
+              />
+              {errors.commercialRegistration ? (
+                <p className="text-sm text-destructive">{errors.commercialRegistration.message}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">{t.auth.commercialRegistrationHint}</p>
+              )}
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="industry">
+                  {t.auth.industry} <span className="text-muted-foreground">({t.common.optional})</span>
+                </Label>
+                <Input id="industry" className="h-12" {...register("industry")} />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="employeeCount">
+                  {t.auth.employeeCount}{" "}
+                  <span className="text-muted-foreground">({t.common.optional})</span>
+                </Label>
+                <Select onValueChange={(value) => setValue("employeeCount", value)}>
+                  <SelectTrigger id="employeeCount" className="h-12 w-full">
+                    <SelectValue placeholder={t.auth.employeeCountPlaceholder} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {EMPLOYEE_RANGES.map((range) => (
+                      <SelectItem key={range} value={range}>
+                        {range}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="contactTitle">
+                {t.auth.contactTitle}{" "}
+                <span className="text-muted-foreground">({t.common.optional})</span>
+              </Label>
+              <Input
+                id="contactTitle"
+                className="h-12"
+                placeholder={t.auth.contactTitlePlaceholder}
+                {...register("contactTitle")}
+              />
+            </div>
           </div>
         </div>
       ) : null}

@@ -2,7 +2,7 @@
 
 import { answerAssistant } from "@/lib/ai/anthropic-provider";
 import { findHelpEntry, PLATFORM_BRIEF } from "@/lib/ai/assistant-knowledge";
-import { getAccountContext } from "@/server/assistant";
+import { getAccountContext, getRosterContext } from "@/server/assistant";
 import { getCurrentUser } from "@/server/session";
 import { t } from "@/lib/i18n/ar";
 
@@ -63,13 +63,16 @@ export async function askAssistantAction(input: {
   if (!apiKey) return offlineAnswer(question, user.role);
 
   try {
-    const accountContext = await getAccountContext(user);
+    const [accountContext, roster] = await Promise.all([
+      getAccountContext(user),
+      getRosterContext(question),
+    ]);
     const answer = await Promise.race([
       answerAssistant({
         apiKey,
         question,
         platformBrief: PLATFORM_BRIEF,
-        accountContext,
+        accountContext: `${accountContext}\n\n### خبراء متاحون الآن\n${roster}`,
         history: input.history ?? [],
       }),
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error("assistant timeout")), TIMEOUT_MS)),

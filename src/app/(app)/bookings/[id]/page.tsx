@@ -20,6 +20,7 @@ import { UserAvatar } from "@/components/user-avatar";
 import { RatingStars } from "@/components/rating-stars";
 import { BookingActions } from "@/components/booking/booking-actions";
 import { AddToCalendar } from "@/components/booking/add-to-calendar";
+import { MeetingRoom } from "@/components/booking/meeting-room";
 import { ChatPanel } from "@/components/messages/chat-panel";
 import { ReviewForm } from "@/components/reviews/review-form";
 import { db } from "@/lib/db";
@@ -194,6 +195,15 @@ export default async function BookingDetailPage({
                 <AlertTitle>{t.booking.reasonLabel}</AlertTitle>
                 <AlertDescription>{booking.statusReason}</AlertDescription>
               </Alert>
+            ) : null}
+
+            {status === "CONFIRMED" ? (
+              <MeetingRoom
+                bookingRef={booking.bookingRef}
+                displayName={user.name}
+                durationMinutes={booking.durationMinutes}
+                startsAt={booking.scheduledAt.toISOString()}
+              />
             ) : null}
 
             {status === "CONFIRMED" ? (
