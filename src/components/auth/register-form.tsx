@@ -114,8 +114,10 @@ export function RegisterForm({ initialRole }: { initialRole?: Role }) {
 
   if (!role) return <RoleChoice onSelect={selectRole} />;
 
+  // Without method="post" a submit fired before hydration falls back to a GET,
+  // which would put the password in the URL and the browser history.
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+    <form method="post" onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
       <div className="flex items-center justify-between rounded-lg bg-brand-soft px-4 py-3">
         <span className="text-sm font-medium">
           {role === "EXPERT" ? t.auth.roleExpert : t.auth.roleClient}

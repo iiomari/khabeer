@@ -40,8 +40,10 @@ export function LoginForm({ next }: { next?: string }) {
     });
   }
 
+  // Without method="post" a submit fired before hydration falls back to a GET,
+  // which would put the password in the URL and the browser history.
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+    <form method="post" onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
       {formError ? (
         <Alert variant="destructive">
           <AlertCircle />
