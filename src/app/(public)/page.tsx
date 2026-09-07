@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, BadgeCheck, CalendarRange, Sparkles } from "lucide-react";
+import { ArrowLeft, BadgeCheck, CalendarRange, LayoutDashboard, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,16 +11,22 @@ import { Testimonials } from "@/components/home/testimonials";
 import { Faq } from "@/components/home/faq";
 import { getFeaturedExperts } from "@/server/experts";
 import { getCategoriesWithCounts, getPlatformStats, getTestimonials } from "@/server/stats";
+import { getCurrentUser } from "@/server/session";
 import { formatNumber } from "@/lib/format";
 import { t } from "@/lib/i18n/ar";
 
 export default async function HomePage() {
-  const [experts, categories, stats, testimonials] = await Promise.all([
+  const [experts, categories, stats, testimonials, user] = await Promise.all([
     getFeaturedExperts(6),
     getCategoriesWithCounts(),
     getPlatformStats(),
     getTestimonials(3),
+    getCurrentUser(),
   ]);
+
+  // Describing a problem is the client's job. An expert or an admin landing here
+  // gets a route into their own dashboard instead of a box they cannot use.
+  const canDescribeProblem = !user || user.role === "CLIENT";
 
   const statCards = [
     { value: formatNumber(stats.experts), label: t.home.statsExperts },
@@ -66,11 +72,35 @@ export default async function HomePage() {
           </div>
 
           <div className="fade-up space-y-4" style={{ animationDelay: "80ms" }}>
-            <div>
-              <h2 className="text-xl font-bold sm:text-2xl">{t.match.boxTitle}</h2>
-              <p className="mt-1.5 text-muted-foreground">{t.match.boxSubtitle}</p>
-            </div>
-            <ProblemBox />
+            {canDescribeProblem ? (
+              <>
+                <div>
+                  <h2 className="text-xl font-bold sm:text-2xl">{t.match.boxTitle}</h2>
+                  <p className="mt-1.5 text-muted-foreground">{t.match.boxSubtitle}</p>
+                </div>
+                <ProblemBox />
+              </>
+            ) : (
+              <Card className="gap-4 p-7">
+                <span className="flex size-11 items-center justify-center rounded-lg bg-brand-soft text-primary">
+                  <LayoutDashboard className="size-5" />
+                </span>
+                <div>
+                  <h2 className="text-xl font-bold sm:text-2xl">
+                    {t.home.welcomeBack(user!.name.split(" ")[0])}
+                  </h2>
+                  <p className="mt-1.5 text-muted-foreground">
+                    {user!.role === "EXPERT" ? t.home.expertHomeHint : t.home.adminHomeHint}
+                  </p>
+                </div>
+                <Button size="lg" className="h-12 self-start px-6 text-base" asChild>
+                  <Link href={user!.role === "EXPERT" ? "/dashboard/expert" : "/admin"}>
+                    {t.nav.dashboard}
+                    <ArrowLeft className="size-4.5" />
+                  </Link>
+                </Button>
+              </Card>
+            )}
           </div>
         </div>
       </section>

@@ -156,3 +156,43 @@ export class AnthropicAiProvider implements AiProvider {
     return matches;
   }
 }
+
+const ASSISTANT_SYSTEM = `أنت «مساعد خبير»، مساعد دعم داخل منصة استشارات سعودية. تخاطب مستخدمًا كثير منهم متقاعدون، فاجعل كلامك بسيطًا وواضحًا.
+
+قواعد صارمة:
+- أجب بالعربية فقط، وبجملتين إلى أربع جمل كحد أقصى. لا قوائم طويلة ولا مقدمات.
+- اعتمد حصريًا على «معلومات المنصة» و«بيانات حساب المستخدم» المعطاة لك.
+- ممنوع منعًا باتًا اختراع رقم أو حالة أو موعد. إن لم تكن المعلومة أمامك، قل ذلك بوضوح ووجّهه إلى الصفحة المناسبة.
+- لا تتحدث عن مستخدمين آخرين ولا عن بياناتهم إطلاقًا.
+- إن كان السؤال خارج نطاق المنصة، اعتذر بلطف في سطر واحد ووجّهه إلى الدعم.
+- نبرة مهنية ودودة بلا مبالغة ولا عبارات تسويقية.`;
+
+/** Answers a support question from platform facts plus the user's own data. */
+export async function answerAssistant(input: {
+  apiKey: string;
+  question: string;
+  platformBrief: string;
+  accountContext: string;
+  history: { role: "user" | "assistant"; content: string }[];
+}): Promise<string> {
+  const client = new Anthropic({ apiKey: input.apiKey, maxRetries: 1 });
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 400,
+    system: [
+      ASSISTANT_SYSTEM,
+      `\n\n### معلومات المنصة\n${input.platformBrief}`,
+      `\n\n### بيانات حساب المستخدم الحالي\n${input.accountContext}`,
+    ].join(""),
+    messages: [
+      ...input.history.slice(-6).map((m) => ({ role: m.role, content: m.content })),
+      { role: "user" as const, content: input.question },
+    ],
+  });
+
+  return response.content
+    .map((block) => (block.type === "text" ? block.text : ""))
+    .join("")
+    .trim();
+}

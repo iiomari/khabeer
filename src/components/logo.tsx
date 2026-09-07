@@ -39,13 +39,10 @@ export function Logo({
       className={cn("group inline-flex items-center gap-2.5 rounded-lg", className)}
       aria-label={`${t.brand.name} — ${t.brand.tagline}`}
     >
-      <LogoMark />
-      <span className="flex flex-col leading-none">
-        <span className="text-xl font-bold tracking-tight text-foreground">{t.brand.name}</span>
-        {withTagline ? (
-          <span className="mt-1 text-xs font-medium text-muted-foreground">{t.brand.tagline}</span>
-        ) : null}
-      </span>
+      <LogoMark className="[&>svg]:size-11" />
+      {withTagline ? (
+        <span className="text-xs font-medium text-muted-foreground">{t.brand.tagline}</span>
+      ) : null}
     </Link>
   );
 }
