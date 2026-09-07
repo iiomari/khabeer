@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ShieldAlert } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/empty-state";
+import { evaluateLicense } from "@/server/licensing";
 import { BookingFlow } from "@/components/booking/booking-flow";
 import { getExpertProfile } from "@/server/experts";
 import { requireRole } from "@/server/session";
@@ -26,6 +29,32 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
   const expert = await getExpertProfile(expertId);
   if (!expert || expert.verificationStatus !== "VERIFIED" || expert.services.length === 0) {
     notFound();
+  }
+
+  // Guarding the buttons is not enough — the URL is guessable, so the page itself
+  // refuses a booking with an expert whose practising licence is not approved.
+  const licence = evaluateLicense({
+    licenseStatus: expert.licenseStatus,
+    categories: expert.categories.map((link) => link.category),
+  });
+  if (!licence.bookable) {
+    return (
+      <>
+        <SiteHeader />
+        <main className="container-page flex-1 py-16">
+          <EmptyState
+            icon={ShieldAlert}
+            title={t.license.blockedTitle}
+            description={t.license.blockedBody}
+            action={
+              <Button asChild>
+                <Link href={`/experts/${expertId}`}>{t.match.viewProfile}</Link>
+              </Button>
+            }
+          />
+        </main>
+      </>
+    );
   }
 
   const request = requestParam

@@ -54,3 +54,11 @@ export const SEED_CATEGORIES = [
 export const EXPERTS_PAGE_SIZE = 9;
 export const BOOKING_WINDOW_DAYS = 21;
 export const SLOT_STEP_MINUTES = 30;
+
+/**
+ * Platform floor for a consultation price. Without a floor, an expert can list a
+ * service for a token amount purely to sit at the top of the "lowest price" sort,
+ * which makes that ordering useless for everyone else.
+ */
+export const MIN_SERVICE_PRICE_SAR = 150;
+export const MAX_SERVICE_PRICE_SAR = 20000;

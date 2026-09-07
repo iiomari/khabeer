@@ -44,6 +44,9 @@ export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod];
 
 export const NotificationType = {
   BOOKING_REQUESTED: "BOOKING_REQUESTED",
+  LICENSE_APPROVED: "LICENSE_APPROVED",
+  LICENSE_REJECTED: "LICENSE_REJECTED",
+  MEETING_SET: "MEETING_SET",
   BOOKING_ACCEPTED: "BOOKING_ACCEPTED",
   BOOKING_REJECTED: "BOOKING_REJECTED",
   BOOKING_CANCELLED: "BOOKING_CANCELLED",
@@ -55,3 +58,22 @@ export const NotificationType = {
   PROFILE_REJECTED: "PROFILE_REJECTED",
 } as const;
 export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType];
+
+export const LicenseStatus = {
+  /** None of the expert's fields is regulated. */
+  NOT_REQUIRED: "NOT_REQUIRED",
+  /** A regulated field is selected but no licence has been submitted yet. */
+  MISSING: "MISSING",
+  PENDING: "PENDING",
+  APPROVED: "APPROVED",
+  REJECTED: "REJECTED",
+} as const;
+export type LicenseStatus = (typeof LicenseStatus)[keyof typeof LicenseStatus];
+
+export const MeetingProvider = {
+  GOOGLE_MEET: "GOOGLE_MEET",
+  ZOOM: "ZOOM",
+  TEAMS: "TEAMS",
+  PHONE: "PHONE",
+} as const;
+export type MeetingProvider = (typeof MeetingProvider)[keyof typeof MeetingProvider];

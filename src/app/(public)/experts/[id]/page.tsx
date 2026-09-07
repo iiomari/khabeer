@@ -9,16 +9,19 @@ import {
   GraduationCap,
   MapPin,
   MessageSquareQuote,
+  ShieldAlert,
   Star,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { UserAvatar } from "@/components/user-avatar";
 import { RatingStars } from "@/components/rating-stars";
 import { EmptyState } from "@/components/empty-state";
+import { evaluateLicense } from "@/server/licensing";
 import { FavoriteButton } from "@/components/experts/favorite-button";
 import { getExpertProfile, getExpertReviews } from "@/server/experts";
 import { getCurrentUser } from "@/server/session";
@@ -49,6 +52,13 @@ export default async function ExpertProfilePage({ params }: PageProps<"/experts/
   if (!expert || expert.verificationStatus !== "VERIFIED" || expert.user.status !== "ACTIVE") {
     notFound();
   }
+
+
+  // A regulated field cannot take bookings until the practising licence is approved.
+  const licence = evaluateLicense({
+    licenseStatus: expert.licenseStatus,
+    categories: expert.categories.map((link) => link.category),
+  });
 
   const [{ reviews, distribution }, currentUser] = await Promise.all([
     getExpertReviews(expert.userId),
@@ -261,11 +271,17 @@ export default async function ExpertProfilePage({ params }: PageProps<"/experts/
                     <span className="text-lg font-bold text-primary">
                       {formatSar(service.priceSar)}
                     </span>
-                    <Button asChild>
-                      <Link href={`/booking/${expert.userId}?service=${service.id}`}>
-                        {t.expert.bookNow}
-                      </Link>
-                    </Button>
+                    {licence.bookable ? (
+                      <Button asChild>
+                        <Link href={`/booking/${expert.userId}?service=${service.id}`}>
+                          {t.expert.bookNow}
+                        </Link>
+                      </Button>
+                    ) : (
+                      <Button disabled title={t.license.blockedBody}>
+                        {t.license.blockedShort}
+                      </Button>
+                    )}
                   </div>
                 </li>
               ))}
@@ -393,9 +409,17 @@ export default async function ExpertProfilePage({ params }: PageProps<"/experts/
               </>
             ) : null}
 
-            <Button size="lg" className="h-12 w-full text-base" asChild>
-              <Link href={`/booking/${expert.userId}`}>{t.expert.bookConsultation}</Link>
-            </Button>
+            {licence.bookable ? (
+              <Button size="lg" className="h-12 w-full text-base" asChild>
+                <Link href={`/booking/${expert.userId}`}>{t.expert.bookConsultation}</Link>
+              </Button>
+            ) : (
+              <Alert>
+                <ShieldAlert />
+                <AlertTitle>{t.license.blockedTitle}</AlertTitle>
+                <AlertDescription>{t.license.blockedBody}</AlertDescription>
+              </Alert>
+            )}
           </Card>
         </aside>
       </div>

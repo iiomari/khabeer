@@ -1,7 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, CalendarClock, CheckCircle2, Clock, Lock, Receipt, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarClock,
+  CalendarPlus,
+  CheckCircle2,
+  Clock,
+  Lock,
+  Receipt,
+  Sparkles,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -10,6 +19,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { UserAvatar } from "@/components/user-avatar";
 import { RatingStars } from "@/components/rating-stars";
 import { BookingActions } from "@/components/booking/booking-actions";
+import { AddToCalendar } from "@/components/booking/add-to-calendar";
 import { ChatPanel } from "@/components/messages/chat-panel";
 import { ReviewForm } from "@/components/reviews/review-form";
 import { db } from "@/lib/db";
@@ -184,6 +194,23 @@ export default async function BookingDetailPage({
                 <AlertTitle>{t.booking.reasonLabel}</AlertTitle>
                 <AlertDescription>{booking.statusReason}</AlertDescription>
               </Alert>
+            ) : null}
+
+            {status === "CONFIRMED" ? (
+              <div className="rounded-xl border bg-muted/30 p-4">
+                <h2 className="mb-2.5 inline-flex items-center gap-1.5 text-sm font-semibold">
+                  <CalendarPlus className="size-4 text-primary" />
+                  {t.booking.addToCalendar}
+                </h2>
+                <AddToCalendar
+                  title={`${t.brand.name}: ${booking.service.name} — ${counterpart.name}`}
+                  description={booking.description}
+                  startsAt={booking.scheduledAt.toISOString()}
+                  durationMinutes={booking.durationMinutes}
+                  bookingRef={booking.bookingRef}
+                  location={booking.meetingUrl ?? undefined}
+                />
+              </div>
             ) : null}
 
             <BookingActions

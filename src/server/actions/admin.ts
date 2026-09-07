@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/server/session";
 import { notify } from "@/server/notifications";
+import { sendEmail } from "@/lib/email";
+import { siteUrl } from "@/lib/site";
 import { categorySchema } from "@/lib/validation";
 import { t } from "@/lib/i18n/ar";
 
@@ -35,7 +37,7 @@ export async function setExpertVerificationAction(
       verificationStatus: status,
       rejectionReason: status === "REJECTED" ? reason || null : null,
     },
-    select: { userId: true },
+    select: { userId: true, user: { select: { name: true, email: true } } },
   });
 
   await notify({
@@ -48,6 +50,21 @@ export async function setExpertVerificationAction(
         : reason || "يرجى مراجعة بيانات ملفك المهني وإعادة إرساله.",
     linkUrl: "/dashboard/expert",
     relatedId: expertProfileId,
+  });
+
+  // Verification is the moment an expert has been waiting for, so it goes out by
+  // email too rather than sitting in a bell they may not check for days.
+  await sendEmail({
+    to: profile.user.email,
+    subject:
+      status === "VERIFIED" ? "تم توثيق ملفك على منصة خبير" : "ملفك المهني يحتاج تعديلًا",
+    text:
+      status === "VERIFIED"
+        ? `مرحبًا ${profile.user.name},\n\nاعتُمد ملفك المهني وأصبح ظاهرًا للعملاء، ويمكنهم الآن حجز استشاراتك.`
+        : `مرحبًا ${profile.user.name},\n\nراجعنا ملفك المهني ولم يُعتمد بعد.\n${
+            reason ? `السبب: ${reason}` : "يرجى مراجعة البيانات وإعادة الإرسال."
+          }`,
+    action: { label: "افتح لوحتك", url: `${siteUrl()}/dashboard/expert` },
   });
 
   revalidatePath("/admin");

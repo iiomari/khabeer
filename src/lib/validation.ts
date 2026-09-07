@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { t } from "@/lib/i18n/ar";
+import { MAX_SERVICE_PRICE_SAR, MIN_SERVICE_PRICE_SAR } from "@/lib/constants";
 
 const v = t.validation;
 
@@ -106,7 +107,11 @@ export const serviceSchema = z.object({
   name: z.string().min(6, v.tooShort(6)).max(140, v.tooLong(140)),
   description: z.string().min(30, v.tooShort(30)).max(800, v.tooLong(800)),
   durationMinutes: z.coerce.number().int().min(15, v.minValue(15)).max(480, v.maxValue(480)),
-  priceSar: z.coerce.number().int().min(50, v.minValue(50)).max(20000, v.maxValue(20000)),
+  priceSar: z.coerce
+    .number()
+    .int()
+    .min(MIN_SERVICE_PRICE_SAR, v.minValue(MIN_SERVICE_PRICE_SAR))
+    .max(MAX_SERVICE_PRICE_SAR, v.maxValue(MAX_SERVICE_PRICE_SAR)),
 });
 
 export const availabilitySchema = z

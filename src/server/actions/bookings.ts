@@ -6,6 +6,9 @@ import { getCurrentUser } from "@/server/session";
 import { isSlotFree } from "@/server/availability";
 import { notify } from "@/server/notifications";
 import { getPaymentProvider } from "@/lib/payments";
+import { sendEmail } from "@/lib/email";
+import { siteUrl } from "@/lib/site";
+import { evaluateLicense } from "@/server/licensing";
 import { bookingSchema, paymentSchema } from "@/lib/validation";
 import { formatDateTime, formatSar } from "@/lib/format";
 import { t } from "@/lib/i18n/ar";
@@ -35,12 +38,26 @@ export async function createBookingAction(input: unknown): Promise<BookingAction
 
   const service = await db.consultingService.findUnique({
     where: { id: parsedBooking.data.serviceId },
-    include: { expertProfile: { include: { user: { select: { id: true, name: true } } } } },
+    include: {
+      expertProfile: {
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+          categories: { select: { category: { select: { requiresLicense: true } } } },
+        },
+      },
+    },
   });
 
   if (!service || !service.isActive || service.expertProfile.verificationStatus !== "VERIFIED") {
     return { ok: false, error: t.common.somethingWentWrong };
   }
+
+  // A regulated field cannot take bookings until the practising licence is approved.
+  const licence = evaluateLicense({
+    licenseStatus: service.expertProfile.licenseStatus,
+    categories: service.expertProfile.categories.map((link) => link.category),
+  });
+  if (!licence.bookable) return { ok: false, error: t.license.blockedBody };
 
   const expertUserId = service.expertProfile.user.id;
   if (expertUserId === user.id) return { ok: false, error: t.booking.ownBooking };
@@ -113,6 +130,24 @@ export async function createBookingAction(input: unknown): Promise<BookingAction
       linkUrl: `/bookings/${booking.id}`,
       relatedId: booking.id,
     }),
+    // Email is a courtesy on top of the in-app notification: an expert who is not
+    // signed in still learns that a paid request is waiting for an answer.
+    sendEmail({
+      to: service.expertProfile.user.email,
+      subject: `طلب استشارة جديد — ${service.name}`,
+      text: [
+        "وصلك طلب استشارة جديد على منصة خبير.",
+        "",
+        `الخدمة: ${service.name}`,
+        `العميل: ${user.name}`,
+        `الموعد المطلوب: ${formatDateTime(scheduledAt)}`,
+        `المبلغ: ${formatSar(service.priceSar)} — مدفوع`,
+        `الرقم المرجعي: ${booking.bookingRef}`,
+        "",
+        "افتح الطلب لقبوله أو رفضه.",
+      ].join("\n"),
+      action: { label: "فتح الطلب", url: `${siteUrl()}/bookings/${booking.id}` },
+    }),
     notify({
       userId: user.id,
       type: "PAYMENT_SUCCESS",
@@ -133,8 +168,8 @@ async function loadBookingForUser(bookingId: string, userId: string) {
   const booking = await db.booking.findUnique({
     where: { id: bookingId },
     include: {
-      client: { select: { id: true, name: true } },
-      expert: { select: { id: true, name: true } },
+      client: { select: { id: true, name: true, email: true } },
+      expert: { select: { id: true, name: true, email: true } },
       service: { select: { name: true } },
     },
   });
@@ -160,14 +195,29 @@ export async function acceptBookingAction(bookingId: string) {
     }),
   ]);
 
-  await notify({
-    userId: booking.clientId,
-    type: "BOOKING_ACCEPTED",
-    title: "تم قبول طلب الاستشارة",
-    body: `قبل ${booking.expert.name} طلبك، ويمكنك الآن التواصل معه عبر الرسائل.`,
-    linkUrl: `/bookings/${booking.id}`,
-    relatedId: booking.id,
-  });
+  await Promise.all([
+    notify({
+      userId: booking.clientId,
+      type: "BOOKING_ACCEPTED",
+      title: "تم قبول طلب الاستشارة",
+      body: `قبل ${booking.expert.name} طلبك، ويمكنك الآن التواصل معه عبر الرسائل.`,
+      linkUrl: `/bookings/${booking.id}`,
+      relatedId: booking.id,
+    }),
+    sendEmail({
+      to: booking.client.email,
+      subject: `تم تأكيد استشارتك مع ${booking.expert.name}`,
+      text: [
+        `قبل ${booking.expert.name} طلب استشارتك.`,
+        "",
+        `الموعد: ${formatDateTime(booking.scheduledAt)}`,
+        `الرقم المرجعي: ${booking.bookingRef}`,
+        "",
+        "من صفحة الاستشارة تقدر تضيف الموعد إلى تقويمك وتبدأ المحادثة مع الخبير.",
+      ].join("\n"),
+      action: { label: "فتح الاستشارة", url: `${siteUrl()}/bookings/${booking.id}` },
+    }),
+  ]);
 
   revalidatePath(`/bookings/${booking.id}`);
   revalidatePath("/dashboard/expert");

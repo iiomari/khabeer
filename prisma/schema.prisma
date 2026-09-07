@@ -62,6 +62,16 @@ model ExpertProfile {
   completedConsultations Int       @default(0)
   minPriceSar            Int?
   onboardingStep         Int       @default(1)
+
+  /// Practising licence, required only when one of the expert's categories is
+  /// regulated. NOT_REQUIRED | MISSING | PENDING | APPROVED | REJECTED
+  licenseStatus          String    @default("NOT_REQUIRED")
+  licenseNumber          String?
+  licenseIssuer          String?
+  licenseExpiry          DateTime?
+  licenseDocUrl          String?
+  licenseRejectionReason String?
+
   publishedAt            DateTime?
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
@@ -88,6 +98,12 @@ model ClientProfile {
   isCompany   Boolean  @default(false)
   companyName String?
   industry    String?
+  /// السجل التجاري — collected from companies at sign-up.
+  commercialRegistration String?
+  crExpiry               DateTime?
+  website                String?
+  employeeCount          String?
+  contactTitle           String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -150,6 +166,9 @@ model Category {
   icon        String?
   description String?
   sortOrder   Int              @default(0)
+  /// Fields where Saudi regulation requires a practising licence before an
+  /// expert may be booked. Set per category, not hard-coded in the UI.
+  requiresLicense Boolean @default(false)
   createdAt   DateTime         @default(now())
   experts     ExpertCategory[]
   requests    ConsultationRequest[]
@@ -206,6 +225,12 @@ model Booking {
   durationMinutes Int
   priceSar        Int
   description     String
+
+  /// How the two sides will meet, agreed inside the conversation.
+  /// GOOGLE_MEET | ZOOM | TEAMS | PHONE
+  meetingProvider String?
+  meetingUrl      String?
+  meetingNote     String?
 
   /// Set when the booking came out of an AI match, so the expert can see the brief.
   requestId String?
@@ -305,11 +330,32 @@ model Message {
   senderId       String
   sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
   body           String
+  /// Optional attachment. Kept as a URL so the storage backend can change
+  /// without touching the message model.
+  attachmentUrl  String?
+  attachmentName String?
+  attachmentType String?
+  attachmentSize Int?
+  attachment     Attachment?
   readAt         DateTime?
   createdAt      DateTime     @default(now())
 
   @@index([conversationId, createdAt])
   @@index([senderId])
+}
+
+/// Files shared inside a consultation. Bytes live in Postgres rather than object
+/// storage so access control is the same query as the conversation itself: only
+/// the two participants can read them, with no presigned URLs to leak.
+model Attachment {
+  id          String   @id @default(cuid())
+  messageId   String   @unique
+  message     Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  fileName    String
+  contentType String
+  sizeBytes   Int
+  data        Bytes
+  createdAt   DateTime @default(now())
 }
 
 model Review {

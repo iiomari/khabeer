@@ -13,6 +13,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:experts": "tsx prisma/seed-experts.ts",
     "db:seed:activity": "tsx prisma/seed-activity.ts",
+    "db:seed:licenses": "tsx prisma/seed-licenses.ts",
     "db:seed:requests": "tsx prisma/seed-requests.ts",
     "db:reset": "prisma migrate reset --force --skip-seed && tsx prisma/seed.ts",
     "db:studio": "prisma studio",
