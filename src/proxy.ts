@@ -31,7 +31,10 @@ export default auth((req) => {
     ? "ADMIN"
     : pathname.startsWith("/dashboard/expert") || pathname.startsWith("/expert/onboarding")
       ? "EXPERT"
-      : pathname.startsWith("/dashboard/client") || pathname.startsWith("/booking")
+      // The trailing slash matters: without it this also matched "/bookings/<id>",
+      // the shared consultation page, and bounced every expert away from their
+      // own bookings — including when they arrived from a notification.
+      : pathname.startsWith("/dashboard/client") || pathname.startsWith("/booking/")
         ? "CLIENT"
         : null;
 
