@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BadgeCheck, TrendingUp } from "lucide-react";
+import { Activity, BadgeCheck, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,19 +9,22 @@ import { UserAvatar } from "@/components/user-avatar";
 import { EmptyState } from "@/components/empty-state";
 import { CategoryIcon } from "@/components/category-icon";
 import { getAdminStats, getDemandPulse } from "@/server/stats";
+import { getPlatformKpis } from "@/server/kpis";
 import { db } from "@/lib/db";
 import { requireRole } from "@/server/session";
 import { formatNumber, formatSar, formatShortDate } from "@/lib/format";
 import { t } from "@/lib/i18n/ar";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: t.admin.title };
 
 export default async function AdminOverviewPage() {
   await requireRole("ADMIN");
 
-  const [stats, demand, pending, recentBookings] = await Promise.all([
+  const [stats, demand, kpis, pending, recentBookings] = await Promise.all([
     getAdminStats(),
     getDemandPulse(),
+    getPlatformKpis(),
     db.expertProfile.findMany({
       where: { verificationStatus: "PENDING" },
       orderBy: { publishedAt: "desc" },
@@ -78,6 +81,38 @@ export default async function AdminOverviewPage() {
           tone="success"
         />
       </div>
+
+      <section className="space-y-4">
+        <div>
+          <h2 className="inline-flex items-center gap-2 text-lg font-bold">
+            <Activity className="size-5 text-primary" />
+            {t.admin.kpisTitle}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t.admin.kpisHint}</p>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {kpis.map((kpi) => (
+            <Card key={kpi.key} className="gap-2 p-4">
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-sm text-muted-foreground">{kpi.label}</span>
+                <span
+                  className={cn(
+                    "shrink-0 rounded-full px-2 py-0.5 text-[0.7rem] font-semibold",
+                    kpi.health === "ok" && "bg-success/12 text-success",
+                    kpi.health === "warn" && "bg-warning/15 text-warning",
+                    kpi.health === "bad" && "bg-destructive/12 text-destructive",
+                  )}
+                >
+                  {kpi.target}
+                </span>
+              </div>
+              <p className="text-2xl font-bold tabular-nums">{kpi.value}</p>
+              <p className="text-xs leading-relaxed text-muted-foreground">{kpi.hint}</p>
+            </Card>
+          ))}
+        </div>
+      </section>
 
       {demand.length > 0 ? (
         <section className="space-y-4">

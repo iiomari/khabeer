@@ -240,6 +240,9 @@ model Booking {
   /// PENDING | CONFIRMED | REJECTED | CANCELLED | COMPLETED
   status       String    @default("PENDING")
   statusReason String?
+  /// When the expert accepted or rejected. Kept separately because updatedAt is
+  /// rewritten by any later edit, which would silently corrupt response-time KPIs.
+  respondedAt  DateTime?
   completedAt  DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt

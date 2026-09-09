@@ -189,7 +189,10 @@ export async function acceptBookingAction(bookingId: string) {
   }
 
   await db.$transaction([
-    db.booking.update({ where: { id: booking.id }, data: { status: "CONFIRMED" } }),
+    db.booking.update({
+      where: { id: booking.id },
+      data: { status: "CONFIRMED", respondedAt: new Date() },
+    }),
     db.conversation.create({
       data: { bookingId: booking.id, clientId: booking.clientId, expertId: booking.expertId },
     }),
@@ -237,7 +240,7 @@ export async function rejectBookingAction(bookingId: string, reason?: string) {
 
   await db.booking.update({
     where: { id: booking.id },
-    data: { status: "REJECTED", statusReason: reason || null },
+    data: { status: "REJECTED", statusReason: reason || null, respondedAt: new Date() },
   });
 
   const payment = await db.payment.findUnique({ where: { bookingId: booking.id } });

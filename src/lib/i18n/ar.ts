@@ -556,6 +556,8 @@ export const ar = {
       CLIENT: "عميل",
       ADMIN: "مشرف",
     },
+    kpisTitle: "مؤشرات أداء المنصة",
+    kpisHint: "آخر ٣٠ يومًا. الشارة بجانب كل رقم هي المستوى الصحي المستهدف.",
     verificationStatuses: {
       DRAFT: "مسودة",
       PENDING: "بانتظار المراجعة",

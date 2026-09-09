@@ -20,6 +20,14 @@ function makeCode(tierKey: string): string {
 export async function grantRewards(expertId: string): Promise<{ vouchers: number; badge: string | null }> {
   const completed = await db.booking.count({ where: { expertId, status: "COMPLETED" } });
 
+  // The stored counter is what the public profile and the badge read from, and a
+  // booking becomes COMPLETED by time passing rather than by an action — so
+  // nothing else would ever bring it up to date.
+  await db.expertProfile.updateMany({
+    where: { userId: expertId },
+    data: { completedConsultations: completed },
+  });
+
   const alreadyEarned = await db.rewardVoucher.findMany({
     where: { expertId },
     select: { tierKey: true },

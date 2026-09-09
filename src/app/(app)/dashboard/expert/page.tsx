@@ -12,13 +12,20 @@ import { RatingStars } from "@/components/rating-stars";
 import { UserAvatar } from "@/components/user-avatar";
 import { getExpertDashboardData } from "@/server/expert-dashboard";
 import { requireRole } from "@/server/session";
+import { grantRewards } from "@/server/rewards";
 import { formatNumber, formatSar, formatShortDate } from "@/lib/format";
 import { t } from "@/lib/i18n/ar";
 
 export const metadata: Metadata = { title: t.nav.dashboard };
 
+// Opening the dashboard is the reliable moment to reconcile derived stats:
+// consultations complete by time passing, so no action fires to update them.
 export default async function ExpertOverviewPage() {
   const user = await requireRole("EXPERT");
+
+  // Consultations complete by time passing, so no action fires to update the
+  // stored counter or hand out a milestone. Opening the dashboard reconciles both.
+  await grantRewards(user.id);
   const data = await getExpertDashboardData(user.id);
 
   const status = data.profile?.verificationStatus ?? "DRAFT";

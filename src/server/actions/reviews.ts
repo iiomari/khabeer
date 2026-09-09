@@ -49,10 +49,6 @@ export async function submitReviewAction(bookingId: string, input: unknown) {
 
   await Promise.all([
     recalculateExpertRating(booking.expertId),
-    db.expertProfile.update({
-      where: { userId: booking.expertId },
-      data: { completedConsultations: { increment: 0 } },
-    }),
     notify({
       userId: booking.expertId,
       type: "NEW_REVIEW",
