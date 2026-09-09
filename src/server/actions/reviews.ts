@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { getCurrentUser } from "@/server/session";
 import { notify } from "@/server/notifications";
 import { recalculateExpertRating } from "@/server/experts";
+import { grantRewards } from "@/server/rewards";
 import { resolveBookingStatus } from "@/lib/booking-status";
 import { reviewSchema } from "@/lib/validation";
 import { t } from "@/lib/i18n/ar";
@@ -62,9 +63,14 @@ export async function submitReviewAction(bookingId: string, input: unknown) {
     }),
   ]);
 
+  // A review is the clearest signal a consultation really happened, so it is the
+  // natural moment to check whether the expert crossed a reward milestone.
+  await grantRewards(booking.expertId);
+
   revalidatePath(`/bookings/${booking.id}`);
   revalidatePath(`/experts/${booking.expertId}`);
   revalidatePath("/dashboard/expert/reviews");
+  revalidatePath("/dashboard/expert/rewards");
 
   return { ok: true as const };
 }

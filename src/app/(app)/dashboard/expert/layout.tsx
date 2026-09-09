@@ -11,6 +11,7 @@ const NAV: NavItem[] = [
   { href: "/dashboard/expert/messages", label: t.dashboard.messages, icon: "Mail" },
   { href: "/dashboard/expert/earnings", label: t.dashboard.earnings, icon: "Wallet" },
   { href: "/dashboard/expert/reviews", label: t.dashboard.reviews, icon: "Star" },
+  { href: "/dashboard/expert/rewards", label: t.rewards.title, icon: "Medal" },
   { href: "/dashboard/expert/settings", label: t.dashboard.settings, icon: "Settings" },
 ];
 

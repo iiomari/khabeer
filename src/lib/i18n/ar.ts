@@ -588,6 +588,26 @@ export const ar = {
     problemMax: "اختصر الوصف إلى ١٥٠٠ حرف",
   },
 
+  rewards: {
+    title: "المكافآت والأوسمة",
+    subtitle: "كلما أنجزت استشارات أكثر، استحققت قسائم ووسامًا يظهر بجانب اسمك",
+    completedLabel: "استشارات مكتملة",
+    currentBadge: "وسامك الحالي",
+    nextVoucher: (n: number, partner: string) => `تبقّى ${n} استشارة لقسيمة ${partner}`,
+    nextBadge: (n: number, badge: string) => `تبقّى ${n} استشارة لوسام «${badge}»`,
+    remaining: (n: number) => `تبقّى ${n} استشارة`,
+    allDone: "أنجزت كل المراحل — شكرًا لعطائك في المنصة.",
+    vouchersTitle: "قسائمي",
+    vouchersHint: "قسيمة لكل مرحلة تبلغها. اعرض الرمز في المتجر عند الشراء.",
+    noVouchers: "لا توجد قسائم بعد",
+    code: "رمز القسيمة",
+    badgesTitle: "الأوسمة",
+    badgesHint: "الوسام دائم ويظهر للعملاء بجانب اسمك — دليل عملي على ما أنجزته هنا.",
+    ladderTitle: "مراحل المكافآت",
+    demoNote: "القسائم والشركاء في هذا النموذج تجريبية لأغراض العرض.",
+    badgeOnProfile: "وسام المنصة",
+  },
+
   meeting: {
     title: "غرفة الاستشارة",
     hint: "اجتماع مرئي داخل المنصة — بلا تحميل تطبيق ولا حساب",

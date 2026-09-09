@@ -1,12 +1,14 @@
 import Link from "next/link";
-import { BadgeCheck, Briefcase, MapPin } from "lucide-react";
+import { BadgeCheck, Briefcase, MapPin, Medal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { UserAvatar } from "@/components/user-avatar";
 import { RatingStars } from "@/components/rating-stars";
+import { currentBadge } from "@/lib/rewards";
 import { t } from "@/lib/i18n/ar";
 import { formatNumber, formatSar, formatYears } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 export type ExpertCardData = {
   id: string;
@@ -52,6 +54,22 @@ export function ExpertCard({ expert }: { expert: ExpertCardData }) {
               />
             ) : null}
           </div>
+
+          {/* The badge is derived from completed consultations, so it is evidence
+              of delivered work rather than a self-declared claim. */}
+          {(() => {
+            const badge = currentBadge(expert.completedConsultations);
+            if (!badge) return null;
+            return (
+              <Badge
+                className={cn("mt-1.5 gap-1 border px-2 py-0.5 text-xs font-normal", badge.tone)}
+                title={badge.description}
+              >
+                <Medal className="size-3" />
+                {badge.name}
+              </Badge>
+            );
+          })()}
           <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">
             {expert.headline ?? expert.previousTitle}
           </p>

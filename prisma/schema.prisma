@@ -38,6 +38,7 @@ model User {
   favoritedBy         Favorite[]     @relation("ExpertFavoritedBy")
   notifications       Notification[]
   requests            ConsultationRequest[]
+  vouchers            RewardVoucher[] @relation("ExpertVouchers")
 
   @@index([role])
   @@index([status])
@@ -385,6 +386,26 @@ model Favorite {
 
   @@unique([clientId, expertId])
   @@index([expertId])
+}
+
+/// A voucher an expert has earned by completing consultations. Rows are created
+/// when the milestone is crossed, never recalculated — so a reward already given
+/// is not withdrawn if a booking is later refunded.
+model RewardVoucher {
+  id          String    @id @default(cuid())
+  expertId    String
+  expert      User      @relation("ExpertVouchers", fields: [expertId], references: [id], onDelete: Cascade)
+  /// Matches a key in src/lib/rewards.ts
+  tierKey     String
+  partner     String
+  valueSar    Int
+  /// Shown once, then treated as used.
+  code        String    @unique
+  redeemedAt  DateTime?
+  earnedAt    DateTime  @default(now())
+
+  @@unique([expertId, tierKey])
+  @@index([expertId, earnedAt])
 }
 
 model Notification {

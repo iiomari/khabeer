@@ -44,6 +44,8 @@ export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod];
 
 export const NotificationType = {
   BOOKING_REQUESTED: "BOOKING_REQUESTED",
+  REWARD_EARNED: "REWARD_EARNED",
+  BADGE_EARNED: "BADGE_EARNED",
   LICENSE_APPROVED: "LICENSE_APPROVED",
   LICENSE_REJECTED: "LICENSE_REJECTED",
   MEETING_SET: "MEETING_SET",
