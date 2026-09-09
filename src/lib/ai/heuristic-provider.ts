@@ -1,3 +1,4 @@
+import { findHelpEntry } from "./assistant-knowledge";
 import {
   CATEGORY_SIGNALS,
   FALLBACK_SIGNALS,
@@ -106,5 +107,19 @@ export class HeuristicAiProvider implements AiProvider {
         score: Math.max(60, 96 - index * 7),
       };
     });
+  }
+
+  /**
+   * Offline assistant: matches the question against the curated help entries.
+   * The caller already appends the link, so this returns prose only.
+   */
+  async answerAssistant(input: {
+    question: string;
+    platformBrief: string;
+    accountContext: string;
+    history: { role: "user" | "assistant"; content: string }[];
+  }): Promise<string> {
+    const entry = findHelpEntry(input.question);
+    return entry?.answer ?? "";
   }
 }

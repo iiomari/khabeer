@@ -1,6 +1,6 @@
 "use server";
 
-import { answerAssistant } from "@/lib/ai/anthropic-provider";
+import { answerAssistant } from "@/lib/ai";
 import { findHelpEntry, PLATFORM_BRIEF } from "@/lib/ai/assistant-knowledge";
 import { getAccountContext, getRosterContext } from "@/server/assistant";
 import { getCurrentUser } from "@/server/session";
@@ -12,12 +12,11 @@ export type AssistantReply = {
   href?: string;
   linkLabel?: string;
   /** Which engine produced this, so the UI can label it honestly. */
-  engine: "claude" | "offline";
+  engine: "model" | "offline";
 };
 
 export type AssistantResult = AssistantReply | { ok: false; error: string };
 
-const TIMEOUT_MS = 12_000;
 const MAX_QUESTION = 500;
 
 /** Per-user throttle. In-memory is enough for a demo; a real deploy would use Redis. */
@@ -43,7 +42,7 @@ function offlineAnswer(question: string, role: string): AssistantReply {
     answer: t.assistant.noAnswer,
     href: "/#faq",
     linkLabel: t.home.faqTitle,
-    engine: "offline",
+    engine: "offline" as const,
   };
 }
 
@@ -59,31 +58,31 @@ export async function askAssistantAction(input: {
 
   if (overLimit(user.id)) return { ok: false, error: t.assistant.rateLimited };
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return offlineAnswer(question, user.role);
-
   try {
     const [accountContext, roster] = await Promise.all([
       getAccountContext(user),
       getRosterContext(question),
     ]);
-    const answer = await Promise.race([
-      answerAssistant({
-        apiKey,
-        question,
-        platformBrief: PLATFORM_BRIEF,
-        accountContext: `${accountContext}\n\n### خبراء متاحون الآن\n${roster}`,
-        history: input.history ?? [],
-      }),
-      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("assistant timeout")), TIMEOUT_MS)),
-    ]);
 
-    if (!answer) throw new Error("empty answer");
+    const { answer, engine } = await answerAssistant({
+      question,
+      platformBrief: PLATFORM_BRIEF,
+      accountContext: `${accountContext}\n\n### خبراء متاحون الآن\n${roster}`,
+      history: input.history ?? [],
+    });
+
+    if (!answer.trim()) return offlineAnswer(question, user.role);
 
     // Attach the canned link when the question maps to a known topic, so even a
-    // model answer ends somewhere actionable.
+    // model answer ends somewhere the user can act.
     const entry = findHelpEntry(question, user.role);
-    return { ok: true, answer, href: entry?.href, linkLabel: entry?.linkLabel, engine: "claude" };
+    return {
+      ok: true,
+      answer,
+      href: entry?.href,
+      linkLabel: entry?.linkLabel,
+      engine: engine === "heuristic" ? "offline" : "model",
+    };
   } catch (error) {
     console.error("[assistant] falling back to the offline answers:", error);
     return offlineAnswer(question, user.role);

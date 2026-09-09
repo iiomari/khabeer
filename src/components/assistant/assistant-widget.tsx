@@ -25,7 +25,7 @@ type Turn = {
   content: string;
   href?: string;
   linkLabel?: string;
-  engine?: "claude" | "offline";
+  engine?: "model" | "offline";
 };
 
 /** Minimal shape of the Web Speech API — it is absent from the DOM lib types. */
@@ -269,7 +269,7 @@ export function AssistantWidget({ role }: { role: UserRole }) {
 
                   {turn.engine ? (
                     <Badge variant="secondary" className="ms-auto text-[10px] font-normal">
-                      {turn.engine === "claude" ? t.assistant.engineClaude : t.assistant.engineOffline}
+                      {turn.engine === "model" ? t.assistant.engineClaude : t.assistant.engineOffline}
                     </Badge>
                   ) : null}
                 </div>

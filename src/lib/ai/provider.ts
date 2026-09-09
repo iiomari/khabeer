@@ -41,10 +41,19 @@ export const rankedMatchSchema = z.object({
 
 export type RankedMatch = z.infer<typeof rankedMatchSchema>;
 
-export type AiEngine = "claude" | "heuristic";
+export type AiEngine = "claude" | "gemini" | "heuristic";
+
+/** Everything the assistant needs to answer one question, gathered by the caller. */
+export type AssistantInput = {
+  question: string;
+  platformBrief: string;
+  accountContext: string;
+  history: { role: "user" | "assistant"; content: string }[];
+};
 
 export interface AiProvider {
   readonly name: AiEngine;
+  answerAssistant(input: AssistantInput): Promise<string>;
   analyzeProblem(input: {
     text: string;
     categories: CategoryRef[];
